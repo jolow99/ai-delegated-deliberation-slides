@@ -335,6 +335,15 @@ ul.ed-list li i { color: var(--muted); }
 .d5 { transition-delay: .64s; }
 .d6 { transition-delay: .78s; }
 
+/* click-through fragments — revealed one per arrow-key press */
+.frag {
+    opacity: 0;
+    transform: translateY(28px);
+    transition: opacity var(--duration-normal) var(--ease-out-expo),
+                transform var(--duration-normal) var(--ease-out-expo);
+}
+.frag.frag-on { opacity: 1; transform: translateY(0); }
+
 /* ===========================================
    DECK CHROME (outside the stage)
    =========================================== */
@@ -382,27 +391,17 @@ body.editing [contenteditable="true"] { outline: 2px dashed rgba(196,30,58,.5); 
 <!-- ============================================================
      1 · TITLE
      ============================================================ -->
-<section class="slide active" data-section="Supercooperation · 5 July 2026">
+<section class="slide active" data-section="5 July 2026">
     <div class="frame"></div>
-    <div class="masthead"><div>Supercooperation <span class="dot">·</span> 5 July 2026</div><div>Habermolt</div></div>
+    <div class="masthead"><div>5 July 2026</div><div></div></div>
     <div class="rule"></div>
-    <div class="content">
-        <div class="kicker reveal d1" style="font-size:40px; margin-top:56px;">Can AI help us disagree better?</div>
-        <h1 class="reveal d2" style="font:700 116px/1.05 var(--font-display); width:1140px; letter-spacing:-.012em;">
+    <div class="content" style="display:flex; flex-direction:column; justify-content:center;">
+        <h1 class="reveal d1" style="font:700 132px/1.06 var(--font-display); max-width:1480px; letter-spacing:-.012em;">
             Delegating Deliberation to <em style="font-style:italic; font-weight:600; color:var(--crimson);">AI&nbsp;Representatives</em>
         </h1>
-        <p class="lede reveal d3" style="margin-top:56px; width:960px; font-size:33px;">
-            What deploying the first public platform for AI-delegated deliberation
-            taught us about representation, aggregation &amp; revision.
-        </p>
-        <div class="reveal d4" style="position:absolute; bottom:0; left:0; display:flex; gap:44px; align-items:baseline; font:600 30px/1 var(--font-body); color:var(--ink);">
+        <div class="reveal d2" style="position:absolute; bottom:0; left:0; font:600 30px/1 var(--font-body); color:var(--ink);">
             Joseph Low <span style="font-style:italic; font-weight:400; color:var(--muted);">&amp;</span> Oscar Duys
-            <span style="font-style:italic; font-weight:400; color:var(--muted); font-size:25px;">Cooperative AI Research Fellowship</span>
         </div>
-        <figure class="plate tilt-r reveal d3" style="position:absolute; right:10px; top:70px; width:430px;">
-            <div class="art"><img src="assets/mascot.jpg" alt="The Habermolt mascot: Jürgen Habermas as a lobster"></div>
-            <figcaption>Fig. 1 — Habermas Machine + Moltbook = Habermolt</figcaption>
-        </figure>
     </div>
     <div class="folio">1 / 33</div>
 </section>
@@ -410,9 +409,9 @@ body.editing [contenteditable="true"] { outline: 2px dashed rgba(196,30,58,.5); 
 <!-- ============================================================
      2 · TEAM
      ============================================================ -->
-<section class="slide" data-section="Supercooperation · 5 July 2026">
+<section class="slide" data-section="5 July 2026">
     <div class="frame"></div>
-    <div class="masthead"><div>Supercooperation <span class="dot">·</span> 5 July 2026</div><div>Habermolt</div></div>
+    <div class="masthead"><div>5 July 2026</div><div>Delegating Deliberation to AI Representatives</div></div>
     <div class="rule"></div>
     <div class="content">
         <h2 class="headline reveal d1" style="font-size:72px;">The Habermolt team</h2>
@@ -446,12 +445,11 @@ body.editing [contenteditable="true"] { outline: 2px dashed rgba(196,30,58,.5); 
      ============================================================ -->
 <section class="slide" data-section="Part I">
     <div class="frame"></div>
-    <div class="masthead"><div>Part I</div><div>Habermolt</div></div>
+    <div class="masthead"><div>Part I</div><div>Delegating Deliberation to AI Representatives</div></div>
     <div class="rule"></div>
     <div class="statement">
         <div class="divider-num reveal d1">I.</div>
         <div class="divider-title reveal d2">Motivation</div>
-        <div class="divider-sub reveal d3">From representative democracy to AI representatives — in four moves.</div>
     </div>
     <div class="folio">3 / 33</div>
 </section>
@@ -463,13 +461,20 @@ body.editing [contenteditable="true"] { outline: 2px dashed rgba(196,30,58,.5); 
      ============================================================ -->
 <section class="slide" data-section="I · Motivation">
     <div class="frame"></div>
-    <div class="masthead"><div>I <span class="dot">·</span> Motivation</div><div>Habermolt</div></div>
+    <div class="masthead"><div>I <span class="dot">·</span> Motivation</div><div>Delegating Deliberation to AI Representatives</div></div>
     <div class="rule"></div>
-    <div class="statement">
-        <h2 class="reveal d1">Right now, somewhere, a group is making a decision that affects you.</h2>
-        <h2 class="reveal d3" style="margin-top:30px;"><em>You're not in the room.</em></h2>
-        <p class="after reveal d5">Friends finalising plans in a group chat. A community rewriting its rules.
-        We rely on proxies to be our voice — but one person can't hold every nuance, or attend every conversation that matters.</p>
+    <div class="content" style="display:flex; flex-direction:column; justify-content:center;">
+        <div style="display:flex; gap:70px;">
+            <div class="frag" style="flex:1; border:1.5px solid var(--hairline); background:#fff; padding:70px 64px;">
+                <div style="font:600 54px/1.3 var(--font-display); color:var(--ink);">You can't be in every room at once.</div>
+            </div>
+            <div class="frag" style="flex:1; border:1.5px solid var(--hairline); background:#fff; padding:70px 64px;">
+                <div style="font:600 54px/1.3 var(--font-display); color:var(--ink);">Decisions that affect you are being made without you.</div>
+            </div>
+        </div>
+        <div class="frag" style="margin-top:90px; text-align:center; font:italic 600 54px/1.3 var(--font-display); color:var(--crimson);">
+            We rely on representatives to make decisions in our interest.
+        </div>
     </div>
     <div class="folio">4 / 33</div>
 </section>
@@ -479,19 +484,18 @@ body.editing [contenteditable="true"] { outline: 2px dashed rgba(196,30,58,.5); 
      ============================================================ -->
 <section class="slide" data-section="I · Motivation">
     <div class="frame"></div>
-    <div class="masthead"><div>I <span class="dot">·</span> Motivation</div><div>Habermolt</div></div>
+    <div class="masthead"><div>I <span class="dot">·</span> Motivation</div><div>Delegating Deliberation to AI Representatives</div></div>
     <div class="rule"></div>
     <div class="content">
         <div class="split">
             <div class="col-text">
-                <div class="kicker reveal d1">The default answer</div>
                 <h2 class="headline reveal d1" style="font-size:76px;">Representative democracy</h2>
                 <ul class="ed-list" style="margin-top:44px;">
-                    <li class="reveal d2">Decisions are made on your behalf by an <b>elected official</b>.</li>
-                    <li class="reveal d3"><b>Pro</b> — it governs millions.</li>
-                    <li class="reveal d4"><b>Con</b> — the feedback loop is an election every few years. <i>Your views evolve in between; your representative never knows.</i></li>
+                    <li class="frag">Decisions are made on your behalf by an <b>elected official</b>.</li>
+                    <li class="frag"><b>Pro</b>: it governs millions.</li>
+                    <li class="frag"><b>Con</b>: the feedback loop is an election every few years. <i>Your views evolve in between; your representative never knows.</i></li>
                 </ul>
-                <div class="verdict reveal d5" style="margin-top:26px;">It scales — but it doesn't listen.</div>
+                <div class="verdict frag" style="margin-top:26px;">It scales, but it doesn't listen.</div>
             </div>
             <div class="col-fig">
                 <figure class="plate tilt-r reveal d3" style="width:640px;">
@@ -509,7 +513,7 @@ body.editing [contenteditable="true"] { outline: 2px dashed rgba(196,30,58,.5); 
      ============================================================ -->
 <section class="slide" data-section="I · Motivation">
     <div class="frame"></div>
-    <div class="masthead"><div>I <span class="dot">·</span> Motivation</div><div>Habermolt</div></div>
+    <div class="masthead"><div>I <span class="dot">·</span> Motivation</div><div>Delegating Deliberation to AI Representatives</div></div>
     <div class="rule"></div>
     <div class="content">
         <div class="split">
@@ -539,7 +543,7 @@ body.editing [contenteditable="true"] { outline: 2px dashed rgba(196,30,58,.5); 
      ============================================================ -->
 <section class="slide" data-section="I · Motivation">
     <div class="frame"></div>
-    <div class="masthead"><div>I <span class="dot">·</span> Motivation</div><div>Habermolt</div></div>
+    <div class="masthead"><div>I <span class="dot">·</span> Motivation</div><div>Delegating Deliberation to AI Representatives</div></div>
     <div class="rule"></div>
     <div class="content">
         <div class="split">
@@ -562,7 +566,7 @@ body.editing [contenteditable="true"] { outline: 2px dashed rgba(196,30,58,.5); 
      ============================================================ -->
 <section class="slide" data-section="I · Motivation">
     <div class="frame"></div>
-    <div class="masthead"><div>I <span class="dot">·</span> Motivation</div><div>Habermolt</div></div>
+    <div class="masthead"><div>I <span class="dot">·</span> Motivation</div><div>Delegating Deliberation to AI Representatives</div></div>
     <div class="rule"></div>
     <div class="content">
         <div class="split">
@@ -591,7 +595,7 @@ body.editing [contenteditable="true"] { outline: 2px dashed rgba(196,30,58,.5); 
      ============================================================ -->
 <section class="slide" data-section="I · Motivation">
     <div class="frame"></div>
-    <div class="masthead"><div>I <span class="dot">·</span> Motivation</div><div>Habermolt</div></div>
+    <div class="masthead"><div>I <span class="dot">·</span> Motivation</div><div>Delegating Deliberation to AI Representatives</div></div>
     <div class="rule"></div>
     <div class="statement">
         <div class="kicker reveal d1">But —</div>
@@ -607,7 +611,7 @@ body.editing [contenteditable="true"] { outline: 2px dashed rgba(196,30,58,.5); 
      ============================================================ -->
 <section class="slide" data-section="I · Motivation">
     <div class="frame"></div>
-    <div class="masthead"><div>I <span class="dot">·</span> Motivation</div><div>Habermolt</div></div>
+    <div class="masthead"><div>I <span class="dot">·</span> Motivation</div><div>Delegating Deliberation to AI Representatives</div></div>
     <div class="rule"></div>
     <div class="content">
         <div class="split">
@@ -636,7 +640,7 @@ body.editing [contenteditable="true"] { outline: 2px dashed rgba(196,30,58,.5); 
      ============================================================ -->
 <section class="slide" data-section="I · Motivation">
     <div class="frame"></div>
-    <div class="masthead"><div>I <span class="dot">·</span> Motivation</div><div>Habermolt</div></div>
+    <div class="masthead"><div>I <span class="dot">·</span> Motivation</div><div>Delegating Deliberation to AI Representatives</div></div>
     <div class="rule"></div>
     <div class="content">
         <h2 class="headline reveal d1" style="font-size:68px;">The best example: <em>Moltbook</em> — a social network for AI agents</h2>
@@ -659,7 +663,7 @@ body.editing [contenteditable="true"] { outline: 2px dashed rgba(196,30,58,.5); 
      ============================================================ -->
 <section class="slide" data-section="I · Motivation">
     <div class="frame"></div>
-    <div class="masthead"><div>I <span class="dot">·</span> Motivation</div><div>Habermolt</div></div>
+    <div class="masthead"><div>I <span class="dot">·</span> Motivation</div><div>Delegating Deliberation to AI Representatives</div></div>
     <div class="rule"></div>
     <div class="statement">
         <div class="kicker reveal d1">But —</div>
@@ -676,7 +680,7 @@ body.editing [contenteditable="true"] { outline: 2px dashed rgba(196,30,58,.5); 
      ============================================================ -->
 <section class="slide" data-section="I · Motivation">
     <div class="frame"></div>
-    <div class="masthead"><div>I <span class="dot">·</span> Motivation</div><div>Habermolt</div></div>
+    <div class="masthead"><div>I <span class="dot">·</span> Motivation</div><div>Delegating Deliberation to AI Representatives</div></div>
     <div class="rule"></div>
     <div class="content">
         <h2 class="headline reveal d1" style="font-size:68px;">Two literatures, one missing square</h2>
@@ -706,7 +710,7 @@ body.editing [contenteditable="true"] { outline: 2px dashed rgba(196,30,58,.5); 
      ============================================================ -->
 <section class="slide" data-section="I · Motivation">
     <div class="frame"></div>
-    <div class="masthead"><div>I <span class="dot">·</span> Motivation</div><div>Habermolt</div></div>
+    <div class="masthead"><div>I <span class="dot">·</span> Motivation</div><div>Delegating Deliberation to AI Representatives</div></div>
     <div class="rule"></div>
     <div class="content">
         <h2 class="headline reveal d1" style="font-size:66px; text-align:center;">So we did the obvious thing.</h2>
@@ -735,7 +739,7 @@ body.editing [contenteditable="true"] { outline: 2px dashed rgba(196,30,58,.5); 
      ============================================================ -->
 <section class="slide" data-section="Part II">
     <div class="frame"></div>
-    <div class="masthead"><div>Part II</div><div>Habermolt</div></div>
+    <div class="masthead"><div>Part II</div><div>Delegating Deliberation to AI Representatives</div></div>
     <div class="rule"></div>
     <div class="statement">
         <div class="divider-num reveal d1">II.</div>
@@ -751,7 +755,7 @@ body.editing [contenteditable="true"] { outline: 2px dashed rgba(196,30,58,.5); 
      ============================================================ -->
 <section class="slide" data-section="II · Product">
     <div class="frame"></div>
-    <div class="masthead"><div>II <span class="dot">·</span> Product</div><div>Habermolt</div></div>
+    <div class="masthead"><div>II <span class="dot">·</span> Product</div><div>Delegating Deliberation to AI Representatives</div></div>
     <div class="rule"></div>
     <div class="content" style="top:176px;">
         <figure class="plate reveal d1" style="width:1370px; margin:0 auto;">
@@ -766,7 +770,7 @@ body.editing [contenteditable="true"] { outline: 2px dashed rgba(196,30,58,.5); 
      ============================================================ -->
 <section class="slide" data-section="II · Product">
     <div class="frame"></div>
-    <div class="masthead"><div>II <span class="dot">·</span> Product</div><div>Habermolt</div></div>
+    <div class="masthead"><div>II <span class="dot">·</span> Product</div><div>Delegating Deliberation to AI Representatives</div></div>
     <div class="rule"></div>
     <div class="content">
         <div class="split">
@@ -793,7 +797,7 @@ body.editing [contenteditable="true"] { outline: 2px dashed rgba(196,30,58,.5); 
      ============================================================ -->
 <section class="slide" data-section="II · Product">
     <div class="frame"></div>
-    <div class="masthead"><div>II <span class="dot">·</span> Product</div><div>Habermolt</div></div>
+    <div class="masthead"><div>II <span class="dot">·</span> Product</div><div>Delegating Deliberation to AI Representatives</div></div>
     <div class="rule"></div>
     <div class="content">
         <div class="split">
@@ -820,7 +824,7 @@ body.editing [contenteditable="true"] { outline: 2px dashed rgba(196,30,58,.5); 
      ============================================================ -->
 <section class="slide" data-section="Part III">
     <div class="frame"></div>
-    <div class="masthead"><div>Part III</div><div>Habermolt</div></div>
+    <div class="masthead"><div>Part III</div><div>Delegating Deliberation to AI Representatives</div></div>
     <div class="rule"></div>
     <div class="statement">
         <div class="divider-num reveal d1">III.</div>
@@ -835,7 +839,7 @@ body.editing [contenteditable="true"] { outline: 2px dashed rgba(196,30,58,.5); 
      ============================================================ -->
 <section class="slide" data-section="III · Launch">
     <div class="frame"></div>
-    <div class="masthead"><div>III <span class="dot">·</span> Launch</div><div>Habermolt</div></div>
+    <div class="masthead"><div>III <span class="dot">·</span> Launch</div><div>Delegating Deliberation to AI Representatives</div></div>
     <div class="rule"></div>
     <div class="content">
         <h2 class="headline reveal d1" style="font-size:64px;">We went <em>a bit</em> viral</h2>
@@ -863,7 +867,7 @@ body.editing [contenteditable="true"] { outline: 2px dashed rgba(196,30,58,.5); 
      ============================================================ -->
 <section class="slide" data-section="III · Launch">
     <div class="frame"></div>
-    <div class="masthead"><div>III <span class="dot">·</span> Launch</div><div>Habermolt</div></div>
+    <div class="masthead"><div>III <span class="dot">·</span> Launch</div><div>Delegating Deliberation to AI Representatives</div></div>
     <div class="rule"></div>
     <div class="content">
         <h2 class="headline reveal d1" style="font-size:64px;">Strangers wrote essays about it</h2>
@@ -890,7 +894,7 @@ body.editing [contenteditable="true"] { outline: 2px dashed rgba(196,30,58,.5); 
      ============================================================ -->
 <section class="slide" data-section="III · Launch">
     <div class="frame"></div>
-    <div class="masthead"><div>III <span class="dot">·</span> Launch</div><div>Habermolt</div></div>
+    <div class="masthead"><div>III <span class="dot">·</span> Launch</div><div>Delegating Deliberation to AI Representatives</div></div>
     <div class="rule"></div>
     <div class="content">
         <div class="split">
@@ -916,7 +920,7 @@ body.editing [contenteditable="true"] { outline: 2px dashed rgba(196,30,58,.5); 
      ============================================================ -->
 <section class="slide" data-section="Part IV">
     <div class="frame"></div>
-    <div class="masthead"><div>Part IV</div><div>Habermolt</div></div>
+    <div class="masthead"><div>Part IV</div><div>Delegating Deliberation to AI Representatives</div></div>
     <div class="rule"></div>
     <div class="content">
         <div class="split">
@@ -941,7 +945,7 @@ body.editing [contenteditable="true"] { outline: 2px dashed rgba(196,30,58,.5); 
      ============================================================ -->
 <section class="slide" data-section="IV · Research">
     <div class="frame"></div>
-    <div class="masthead"><div>IV <span class="dot">·</span> Research</div><div>Habermolt</div></div>
+    <div class="masthead"><div>IV <span class="dot">·</span> Research</div><div>Delegating Deliberation to AI Representatives</div></div>
     <div class="rule"></div>
     <div class="content">
         <div class="split">
@@ -965,7 +969,7 @@ body.editing [contenteditable="true"] { outline: 2px dashed rgba(196,30,58,.5); 
      ============================================================ -->
 <section class="slide" data-section="IV · Research">
     <div class="frame"></div>
-    <div class="masthead"><div>IV <span class="dot">·</span> Research</div><div>Habermolt</div></div>
+    <div class="masthead"><div>IV <span class="dot">·</span> Research</div><div>Delegating Deliberation to AI Representatives</div></div>
     <div class="rule"></div>
     <div class="content">
         <h2 class="headline reveal d1" style="font-size:60px;">Three dimensions of any deliberative system</h2>
@@ -989,7 +993,7 @@ body.editing [contenteditable="true"] { outline: 2px dashed rgba(196,30,58,.5); 
      ============================================================ -->
 <section class="slide" data-section="IV · Research">
     <div class="frame"></div>
-    <div class="masthead"><div>IV <span class="dot">·</span> Research</div><div>Habermolt</div></div>
+    <div class="masthead"><div>IV <span class="dot">·</span> Research</div><div>Delegating Deliberation to AI Representatives</div></div>
     <div class="rule"></div>
     <div class="content">
         <div class="split">
@@ -1018,7 +1022,7 @@ body.editing [contenteditable="true"] { outline: 2px dashed rgba(196,30,58,.5); 
      ============================================================ -->
 <section class="slide" data-section="IV · Research">
     <div class="frame"></div>
-    <div class="masthead"><div>IV <span class="dot">·</span> Research</div><div>Habermolt</div></div>
+    <div class="masthead"><div>IV <span class="dot">·</span> Research</div><div>Delegating Deliberation to AI Representatives</div></div>
     <div class="rule"></div>
     <div class="content">
         <div class="split">
@@ -1046,7 +1050,7 @@ body.editing [contenteditable="true"] { outline: 2px dashed rgba(196,30,58,.5); 
      ============================================================ -->
 <section class="slide" data-section="IV · Research">
     <div class="frame"></div>
-    <div class="masthead"><div>IV <span class="dot">·</span> Research</div><div>Habermolt</div></div>
+    <div class="masthead"><div>IV <span class="dot">·</span> Research</div><div>Delegating Deliberation to AI Representatives</div></div>
     <div class="rule"></div>
     <div class="content">
         <div class="kicker reveal d1">Finding three · Revision</div>
@@ -1064,7 +1068,7 @@ body.editing [contenteditable="true"] { outline: 2px dashed rgba(196,30,58,.5); 
      ============================================================ -->
 <section class="slide" data-section="IV · Research">
     <div class="frame"></div>
-    <div class="masthead"><div>IV <span class="dot">·</span> Research</div><div>Habermolt</div></div>
+    <div class="masthead"><div>IV <span class="dot">·</span> Research</div><div>Delegating Deliberation to AI Representatives</div></div>
     <div class="rule"></div>
     <div class="content">
         <div class="split">
@@ -1093,7 +1097,7 @@ body.editing [contenteditable="true"] { outline: 2px dashed rgba(196,30,58,.5); 
      ============================================================ -->
 <section class="slide" data-section="Part V">
     <div class="frame"></div>
-    <div class="masthead"><div>Part V</div><div>Habermolt</div></div>
+    <div class="masthead"><div>Part V</div><div>Delegating Deliberation to AI Representatives</div></div>
     <div class="rule"></div>
     <div class="statement">
         <div class="divider-num reveal d1">V.</div>
@@ -1108,7 +1112,7 @@ body.editing [contenteditable="true"] { outline: 2px dashed rgba(196,30,58,.5); 
      ============================================================ -->
 <section class="slide" data-section="V · Conclusion">
     <div class="frame"></div>
-    <div class="masthead"><div>V <span class="dot">·</span> Conclusion</div><div>Habermolt</div></div>
+    <div class="masthead"><div>V <span class="dot">·</span> Conclusion</div><div>Delegating Deliberation to AI Representatives</div></div>
     <div class="rule"></div>
     <div class="content">
         <h2 class="headline reveal d1" style="font-size:62px;">Not everyone thinks this should exist</h2>
@@ -1136,7 +1140,7 @@ body.editing [contenteditable="true"] { outline: 2px dashed rgba(196,30,58,.5); 
      ============================================================ -->
 <section class="slide" data-section="V · Conclusion">
     <div class="frame"></div>
-    <div class="masthead"><div>V <span class="dot">·</span> Conclusion</div><div>Habermolt</div></div>
+    <div class="masthead"><div>V <span class="dot">·</span> Conclusion</div><div>Delegating Deliberation to AI Representatives</div></div>
     <div class="rule"></div>
     <div class="content">
         <h2 class="headline reveal d1" style="font-size:66px;">Where <em>should</em> we delegate deliberation?</h2>
@@ -1165,7 +1169,7 @@ body.editing [contenteditable="true"] { outline: 2px dashed rgba(196,30,58,.5); 
      ============================================================ -->
 <section class="slide" data-section="Fin">
     <div class="frame"></div>
-    <div class="masthead"><div>Thank you</div><div>Habermolt</div></div>
+    <div class="masthead"><div>Thank you</div><div>Delegating Deliberation to AI Representatives</div></div>
     <div class="rule"></div>
     <div class="content">
         <div class="split">
@@ -1237,8 +1241,8 @@ class SlidePresentation {
         addEventListener('keydown', (e) => {
             if (e.target.getAttribute && e.target.getAttribute('contenteditable')) return;
             switch (e.key) {
-                case 'ArrowRight': case 'ArrowDown': case ' ': case 'PageDown': this.show(this.current + 1); e.preventDefault(); break;
-                case 'ArrowLeft': case 'ArrowUp': case 'PageUp': this.show(this.current - 1); e.preventDefault(); break;
+                case 'ArrowRight': case 'ArrowDown': case ' ': case 'PageDown': this.next(); e.preventDefault(); break;
+                case 'ArrowLeft': case 'ArrowUp': case 'PageUp': this.prev(); e.preventDefault(); break;
                 case 'Home': this.show(0); e.preventDefault(); break;
                 case 'End': this.show(this.slides.length - 1); e.preventDefault(); break;
             }
@@ -1252,7 +1256,7 @@ class SlidePresentation {
             if (x0 === null) return;
             const dx = e.changedTouches[0].clientX - x0;
             const dy = e.changedTouches[0].clientY - y0;
-            if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy)) this.show(this.current + (dx < 0 ? 1 : -1));
+            if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy)) (dx < 0 ? this.next() : this.prev());
             x0 = y0 = null;
         }, { passive: true });
     }
@@ -1262,16 +1266,32 @@ class SlidePresentation {
             const now = Date.now();
             if (now - this.wheelLock < 700 || Math.abs(e.deltaY) < 24) return;
             this.wheelLock = now;
-            this.show(this.current + (e.deltaY > 0 ? 1 : -1));
+            e.deltaY > 0 ? this.next() : this.prev();
         }, { passive: true });
     }
 
-    show(i) {
+    /* advance: reveal the next fragment on this slide, else go to the next slide */
+    next() {
+        const frag = this.slides[this.current].querySelector('.frag:not(.frag-on)');
+        if (frag) { frag.classList.add('frag-on'); return; }
+        this.show(this.current + 1);
+    }
+
+    /* go back: hide the last revealed fragment, else go to the previous slide (fragments shown) */
+    prev() {
+        const on = this.slides[this.current].querySelectorAll('.frag.frag-on');
+        if (on.length) { on[on.length - 1].classList.remove('frag-on'); return; }
+        this.show(this.current - 1, true);
+    }
+
+    show(i, revealFrags = false) {
         this.current = Math.max(0, Math.min(i, this.slides.length - 1));
         this.slides.forEach((s, j) => {
             s.classList.toggle('active', j === this.current);
             s.classList.toggle('visible', j === this.current);
         });
+        this.slides[this.current].querySelectorAll('.frag')
+            .forEach(f => f.classList.toggle('frag-on', revealFrags));
         this.counter.textContent = `${this.current + 1} / ${this.slides.length}`;
         history.replaceState(null, '', '#' + (this.current + 1));
     }
@@ -1285,7 +1305,7 @@ const deck = new SlidePresentation();
    downloads the edited HTML file.
    =========================================== */
 const EDIT_SELECTOR = '.slide h1, .slide h2, .slide p, .slide li, .slide figcaption, .slide .kicker, .slide .verdict, .slide .divider-title, .slide .divider-sub, .slide .masthead div, .slide .folio';
-const STORE_KEY = 'habermolt-deck-edits-v1';
+const STORE_KEY = 'habermolt-deck-edits-v2';
 
 class InlineEditor {
     constructor() {
@@ -1306,12 +1326,15 @@ class InlineEditor {
     save() {
         const edits = {};
         this.els.forEach((el, i) => { edits[i] = el.innerHTML; });
-        try { localStorage.setItem(STORE_KEY, JSON.stringify(edits)); } catch (e) {}
+        try { localStorage.setItem(STORE_KEY, JSON.stringify({ n: this.els.length, edits })); } catch (e) {}
     }
     restore() {
         try {
-            const edits = JSON.parse(localStorage.getItem(STORE_KEY) || 'null');
-            if (edits) this.els.forEach((el, i) => { if (edits[i] !== undefined) el.innerHTML = edits[i]; });
+            const saved = JSON.parse(localStorage.getItem(STORE_KEY) || 'null');
+            /* edits are keyed by element index — only restore if the deck
+               structure is unchanged since they were saved */
+            if (!saved || saved.n !== this.els.length || !saved.edits) return;
+            this.els.forEach((el, i) => { if (saved.edits[i] !== undefined) el.innerHTML = saved.edits[i]; });
         } catch (e) {}
     }
     download() {
