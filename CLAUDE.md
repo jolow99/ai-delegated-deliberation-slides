@@ -6,8 +6,14 @@ skill; no build step, no dependencies.
 
 ## Files
 
-- `index.html` — the entire deck: 33 slides, all CSS/JS inline. This is the only file you edit.
+- `index.html` — the entire deck: 33 slides, all CSS/JS inline. This is the **current/live working deck**
+  (retargeted per talk — venue/date edited in place). This is the only deck file you edit.
 - `assets/` — images, already resized/compressed for the web. Referenced by relative path.
+- `presentations/<date>-<slug>/` — **frozen history of past talks**, each fully self-contained
+  (its own `index.html` + its own `assets/` copy, so root edits can't break it). Never hand-edit these.
+  When a talk is finished, freeze it: `git show <tag-or-ref>:index.html > presentations/<date>-<slug>/index.html`
+  then `cp -R assets presentations/<date>-<slug>/assets`. See `presentations/README.md` for the index.
+  Each is also live at `…/presentations/<date>-<slug>/`.
 - `habermolt-deck.pdf` — static export (untracked); regenerate after edits, don't hand-edit.
 - `.frontend-slides/` (gitignored) — extraction scratch from the original pptx. The full-resolution
   originals live in `5th July 26' @Supercooperation.pptx` (also gitignored via `*.pptx`) and can be
