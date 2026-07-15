@@ -343,6 +343,8 @@ ul.ed-list li i { color: var(--muted); }
                 transform var(--duration-normal) var(--ease-out-expo);
 }
 .frag.frag-on { opacity: 1; transform: translateY(0); }
+/* table rows fade only — a translateY would shift the row over its neighbour */
+tr.frag { transform: none; }
 
 /* ===========================================
    DECK CHROME (outside the stage)
@@ -1134,7 +1136,7 @@ body.editing [contenteditable="true"] { outline: 2px dashed rgba(196,30,58,.5); 
     <div class="content">
         <h2 class="headline reveal d1" style="font-size:48px;">Exploring the <em>design space</em> of deliberative systems</h2>
         <div class="reveal d2" style="margin-top:20px; text-align:center;">
-                <div style="width:1620px; zoom:0.62; margin:0 auto;">
+                <div style="width:1880px; zoom:0.862; margin:0 auto;">
         <table style="width:100%; border-collapse:collapse; background:#fff; border:1.5px solid var(--hairline); font:400 23px/1.35 var(--font-body); color:var(--ink);">
             <thead>
                 <tr style="border-bottom:1.5px solid var(--hairline);">
@@ -1147,7 +1149,7 @@ body.editing [contenteditable="true"] { outline: 2px dashed rgba(196,30,58,.5); 
                 </tr>
             </thead>
             <tbody>
-                <tr style="border-bottom:1px solid var(--hairline); vertical-align:top;">
+                <tr class="frag" data-fstep="rep" style="border-bottom:1px solid var(--hairline); vertical-align:top;">
                     <td style="padding:18px; font:700 24px/1.25 var(--font-display); color:var(--crimson);">Representation<div style="margin-top:6px; font:italic 400 20px/1.3 var(--font-body); color:var(--muted);">how views enter</div></td>
                     <td style="padding:18px;">Spoken &amp; written contributions, self-authored in facilitated discussion</td>
                     <td style="padding:18px;">Votes on each surfaced statement</td>
@@ -1155,7 +1157,7 @@ body.editing [contenteditable="true"] { outline: 2px dashed rgba(196,30,58,.5); 
                     <td style="padding:18px;">Synthetic output generated from a profile, survey, or interview</td>
                     <td style="padding:18px; background:rgba(154,26,26,.05);">Agent interview builds memory; opinion rendered from memory at participation time</td>
                 </tr>
-                <tr style="border-bottom:1px solid var(--hairline); vertical-align:top;">
+                <tr class="frag" data-fstep="agg" style="border-bottom:1px solid var(--hairline); vertical-align:top;">
                     <td style="padding:18px; font:700 24px/1.25 var(--font-display); color:var(--crimson);">Aggregation<div style="margin-top:6px; font:italic 400 20px/1.3 var(--font-body); color:var(--muted);">how they combine</div></td>
                     <td style="padding:18px;">Report, via facilitated consensus &amp; rapporteur synthesis</td>
                     <td style="padding:18px;">Cluster map from embedded vote vectors</td>
@@ -1163,7 +1165,7 @@ body.editing [contenteditable="true"] { outline: 2px dashed rgba(196,30,58,.5); 
                     <td style="padding:18px;">Aggregate statistic from a rule over synthetic inputs</td>
                     <td style="padding:18px; background:rgba(154,26,26,.05);">Consensus statement via Schulze ranking over agent-authored candidates</td>
                 </tr>
-                <tr style="vertical-align:top;">
+                <tr class="frag" data-fstep="rev" style="vertical-align:top;">
                     <td style="padding:18px; font:700 24px/1.25 var(--font-display); color:var(--crimson);">Revision<div style="margin-top:6px; font:italic 400 20px/1.3 var(--font-body); color:var(--muted);">how output tracks change</div></td>
                     <td style="padding:18px;">Discussion &amp; persuasion among co-present participants</td>
                     <td style="padding:18px;">New votes &amp; statements accrue passively</td>
@@ -1177,24 +1179,24 @@ body.editing [contenteditable="true"] { outline: 2px dashed rgba(196,30,58,.5); 
                 <div style="margin-top:10px; font:italic 400 21px/1.4 var(--font-body); color:var(--muted);">The design space across five systems — Appendix A of the paper.</div>
         </div>
         <div style="display:flex; gap:40px; margin-top:24px; align-items:flex-start;">
-            <div class="frag" style="flex:1;">
+            <div style="flex:1;">
                 <div class="kicker">In the Habermolt context</div>
-                <div style="margin-top:10px; font:400 21px/1.4 var(--font-body);">
-                    <div><b style="color:var(--crimson);">Representation</b>: how to facilitate individuals to provide a meaningful voice? <i style="color:var(--muted);">(interview → opinion)</i></div>
-                    <div style="margin-top:9px;"><b style="color:var(--crimson);">Aggregation</b>: individual opinions → collective output <i style="color:var(--muted);">(statement generation + ranking)</i></div>
-                    <div style="margin-top:9px;"><b style="color:var(--crimson);">Revision</b>: how does the collective output change over time?</div>
+                <div style="margin-top:10px; font:400 19px/1.4 var(--font-body);">
+                    <div class="frag" data-fstep="rep"><b style="color:var(--crimson);">Representation</b>: how to facilitate individuals to provide a meaningful voice? <i style="color:var(--muted);">(interview → opinion)</i></div>
+                    <div class="frag" data-fstep="agg" style="margin-top:7px;"><b style="color:var(--crimson);">Aggregation</b>: individual opinions → collective output <i style="color:var(--muted);">(statement generation + ranking)</i></div>
+                    <div class="frag" data-fstep="rev" style="margin-top:7px;"><b style="color:var(--crimson);">Revision</b>: how does the collective output change over time?</div>
                 </div>
             </div>
-            <div class="frag" style="flex:1;">
+            <div style="flex:1;">
                 <div class="kicker">In the democratic deliberation context</div>
-                <div style="margin-top:10px; font:400 21px/1.4 var(--font-body);">
-                    <div>Is creating consensus statements the best way to create consensus?</div>
-                    <div style="margin-top:9px;">Should agents be able to directly communicate with each other?</div>
+                <div style="margin-top:10px; font:400 19px/1.4 var(--font-body);">
+                    <div class="frag">Is creating consensus statements the best way to create consensus?</div>
+                    <div class="frag" style="margin-top:7px;">Should agents be able to directly communicate with each other?</div>
                 </div>
             </div>
-            <div class="frag" style="flex:1;">
+            <div style="flex:1;">
                 <div class="kicker">In the most generalized context</div>
-                <div style="margin-top:10px; font:400 21px/1.4 var(--font-body);">Nothing more than: <em style="color:var(--crimson);">how do we put a group of humans together?</em></div>
+                <div class="frag" style="margin-top:10px; font:400 19px/1.4 var(--font-body);">Nothing more than: <em style="color:var(--crimson);">how do we put a group of humans together?</em></div>
             </div>
         </div>
     </div>
@@ -1415,15 +1417,36 @@ class SlidePresentation {
 
     /* advance: reveal the next fragment on this slide, else go to the next slide */
     next() {
-        const frag = this.slides[this.current].querySelector('.frag:not(.frag-on)');
-        if (frag) { frag.classList.add('frag-on'); return; }
+        const slide = this.slides[this.current];
+        const frag = slide.querySelector('.frag:not(.frag-on)');
+        if (frag) {
+            const step = frag.dataset.fstep;
+            if (step) {
+                slide.querySelectorAll('.frag[data-fstep="' + step + '"]:not(.frag-on)')
+                    .forEach(f => f.classList.add('frag-on'));
+            } else {
+                frag.classList.add('frag-on');
+            }
+            return;
+        }
         this.show(this.current + 1);
     }
 
-    /* go back: hide the last revealed fragment, else go to the previous slide (fragments shown) */
+    /* go back: hide the last revealed fragment (or its data-fstep group), else go to the previous slide */
     prev() {
-        const on = this.slides[this.current].querySelectorAll('.frag.frag-on');
-        if (on.length) { on[on.length - 1].classList.remove('frag-on'); return; }
+        const slide = this.slides[this.current];
+        const on = slide.querySelectorAll('.frag.frag-on');
+        if (on.length) {
+            const last = on[on.length - 1];
+            const step = last.dataset.fstep;
+            if (step) {
+                slide.querySelectorAll('.frag[data-fstep="' + step + '"].frag-on')
+                    .forEach(f => f.classList.remove('frag-on'));
+            } else {
+                last.classList.remove('frag-on');
+            }
+            return;
+        }
         this.show(this.current - 1, true);
     }
 
