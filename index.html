@@ -1390,8 +1390,18 @@ class SlidePresentation {
                 case 'ArrowLeft': case 'ArrowUp': case 'PageUp': this.prev(); e.preventDefault(); break;
                 case 'Home': this.show(0); e.preventDefault(); break;
                 case 'End': this.show(this.slides.length - 1); e.preventDefault(); break;
+                case 'f': case 'F': this.toggleFullscreen(); e.preventDefault(); break;
             }
         });
+    }
+
+    /* true chromeless fullscreen via the Fullscreen API (no browser bookmarks/URL bar) */
+    toggleFullscreen() {
+        if (document.fullscreenElement) {
+            document.exitFullscreen();
+        } else {
+            document.documentElement.requestFullscreen().catch(() => {});
+        }
     }
 
     setupTouchNav() {
