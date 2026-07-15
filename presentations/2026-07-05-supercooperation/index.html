@@ -1,0 +1,1522 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Delegating Deliberation to AI Representatives</title>
+
+<!-- Fonts: Cormorant Garamond (display serif) + Source Serif 4 (body serif) -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600&family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,600;0,8..60,700;1,8..60,300;1,8..60,400;1,8..60,600&display=swap" rel="stylesheet">
+
+<style>
+/* ===========================================
+   THEME — "Paper & Ink"
+   Warm cream paper, charcoal ink, crimson accent.
+   Change these variables to retheme the deck.
+   =========================================== */
+:root {
+    --paper: #faf9f7;          /* slide background */
+    --ink: #1a1a1a;            /* primary text */
+    --muted: #6b6255;          /* secondary text */
+    --crimson: #c41e3a;        /* accent (echoes the lobster) */
+    --hairline: rgba(26,26,26,.28);
+    --stage-bg: #e8e4dc;       /* letterbox color around the stage */
+    --slide-bg: var(--paper);
+
+    --font-display: 'Cormorant Garamond', serif;
+    --font-body: 'Source Serif 4', serif;
+
+    --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+    --duration-normal: 0.7s;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+/* ===========================================
+   FIXED 16:9 STAGE: MANDATORY BASE STYLES
+   (viewport-base.css — do not edit)
+   =========================================== */
+html,
+body {
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    overflow: hidden;
+    background: var(--stage-bg, #000);
+}
+.deck-viewport {
+    position: fixed;
+    inset: 0;
+    overflow: hidden;
+    background: var(--stage-bg, #000);
+}
+.deck-stage {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 1920px;
+    height: 1080px;
+    overflow: hidden;
+    transform-origin: 0 0;
+    background: var(--slide-bg, #fff);
+}
+.slide {
+    position: absolute;
+    inset: 0;
+    width: 1920px;
+    height: 1080px;
+    overflow: hidden;
+    display: block;
+    visibility: hidden;
+    opacity: 0;
+    pointer-events: none;
+    background: var(--slide-bg, #fff);
+}
+.slide.active,
+.slide.visible {
+    visibility: visible;
+    opacity: 1;
+    pointer-events: auto;
+    z-index: 1;
+}
+img, video, canvas, svg {
+    max-width: 100%;
+    max-height: 100%;
+}
+.deck-controls {
+    position: fixed;
+    left: 50%;
+    bottom: 22px;
+    transform: translateX(-50%);
+    z-index: 1000;
+}
+@media print {
+    html, body { width: 1920px; height: auto; overflow: visible; background: #fff; }
+    .deck-viewport { position: static; overflow: visible; background: #fff; }
+    .deck-stage { position: static; width: auto; height: auto; transform: none !important; background: none; }
+    .slide {
+        position: relative;
+        display: block !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        pointer-events: auto !important;
+        width: 1920px;
+        height: 1080px;
+        break-after: page;
+        page-break-after: always;
+    }
+    .slide:last-child { break-after: auto; page-break-after: auto; }
+    .deck-controls { display: none !important; }
+}
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.2s !important;
+    }
+}
+/* =========== end viewport-base.css =========== */
+
+/* ===========================================
+   SLIDE CHROME — frame, masthead, rule, folio
+   Shared by every slide.
+   =========================================== */
+/* faint laid-paper texture over each slide */
+.slide::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: repeating-linear-gradient(0deg, rgba(26,26,26,.015) 0 1px, transparent 1px 7px);
+}
+.frame {
+    position: absolute;
+    inset: 44px;
+    border: 1.5px solid var(--hairline);
+    pointer-events: none;
+}
+.frame::before {
+    content: "";
+    position: absolute;
+    inset: 9px;
+    border: 1px solid rgba(26,26,26,.13);
+}
+.masthead {
+    position: absolute;
+    top: 86px;
+    left: 150px;
+    right: 150px;
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    font: 600 21px/1 var(--font-body);
+    letter-spacing: .3em;
+    text-transform: uppercase;
+    color: var(--muted);
+}
+.masthead .dot { color: var(--crimson); }
+.rule {
+    position: absolute;
+    left: 150px;
+    right: 150px;
+    top: 138px;
+    height: 1px;
+    background: var(--hairline);
+}
+.rule::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: -2.5px;
+    width: 180px;
+    height: 5px;
+    background: var(--crimson);
+}
+.folio {
+    position: absolute;
+    bottom: 82px;
+    right: 150px;
+    font: 400 22px/1 var(--font-body);
+    color: var(--muted);
+    letter-spacing: .24em;
+}
+
+/* ===========================================
+   TYPOGRAPHY BUILDING BLOCKS
+   =========================================== */
+.kicker {
+    font: italic 600 34px/1.2 var(--font-display);
+    color: var(--crimson);
+    margin-bottom: 14px;
+}
+h2.headline {
+    font: 700 84px/1.04 var(--font-display);
+    color: var(--ink);
+    letter-spacing: -.01em;
+}
+h2.headline em { font-style: italic; font-weight: 600; color: var(--crimson); }
+.lede {
+    font: italic 400 31px/1.55 var(--font-body);
+    color: var(--muted);
+}
+/* the crimson "verdict" pull-quote used on argument slides */
+.verdict {
+    border-top: 1px solid var(--hairline);
+    padding-top: 26px;
+    font: italic 600 44px/1.25 var(--font-display);
+    color: var(--crimson);
+}
+.verdict small {
+    display: block;
+    margin-top: 10px;
+    font: italic 400 26px/1.5 var(--font-body);
+    color: var(--muted);
+}
+/* simple editorial list */
+ul.ed-list { list-style: none; }
+ul.ed-list li {
+    position: relative;
+    padding-left: 44px;
+    margin-bottom: 26px;
+    font: 400 30px/1.5 var(--font-body);
+    color: var(--ink);
+}
+ul.ed-list li::before {
+    content: "—";
+    position: absolute;
+    left: 0;
+    color: var(--crimson);
+}
+ul.ed-list li b { font-weight: 700; }
+ul.ed-list li i { color: var(--muted); }
+
+/* ===========================================
+   LAYOUT PATTERNS
+   =========================================== */
+/* standard content area under the masthead */
+.content {
+    position: absolute;
+    top: 196px;
+    left: 150px;
+    right: 150px;
+    bottom: 150px;
+}
+/* two-column split: text + figure */
+.split { display: flex; gap: 90px; height: 100%; align-items: center; }
+.split .col-text { flex: 1.06; }
+.split .col-fig { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 30px; }
+
+/* framed figure "plate" — white card w/ caption, like a book plate */
+.plate { max-width: 100%; }
+.plate .art {
+    background: #fff;
+    border: 1px solid rgba(26,26,26,.2);
+    padding: 18px;
+    box-shadow: 0 14px 44px rgba(26,26,26,.14);
+}
+.plate img { display: block; width: 100%; height: auto; }
+.plate figcaption {
+    margin-top: 14px;
+    text-align: center;
+    font: italic 500 23px/1.4 var(--font-display);
+    color: var(--muted);
+}
+.tilt-l { transform: rotate(-1.4deg); }
+.tilt-r { transform: rotate(1.4deg); }
+
+/* gallery of 2–3 plates in a row */
+.gallery {
+    display: flex;
+    gap: 56px;
+    height: 100%;
+    align-items: center;
+    justify-content: center;
+}
+.gallery .plate { flex: 1; min-width: 0; }
+
+/* statement slides — one huge centred thought */
+.statement {
+    position: absolute;
+    inset: 150px 190px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+.statement h2 {
+    font: 600 96px/1.14 var(--font-display);
+    color: var(--ink);
+    letter-spacing: -.01em;
+}
+.statement h2 em { font-style: italic; color: var(--crimson); }
+.statement .after {
+    margin-top: 48px;
+    font: italic 400 33px/1.6 var(--font-body);
+    color: var(--muted);
+    max-width: 1250px;
+}
+
+/* section dividers */
+.divider-num {
+    font: italic 500 200px/1 var(--font-display);
+    color: rgba(196,30,58,.16);
+}
+.divider-title {
+    font: 700 148px/1 var(--font-display);
+    color: var(--ink);
+    letter-spacing: -.015em;
+    margin-top: -70px;
+}
+.divider-sub {
+    margin-top: 34px;
+    font: italic 400 34px/1.5 var(--font-body);
+    color: var(--muted);
+    max-width: 1100px;
+}
+
+/* ===========================================
+   ENTRANCE ANIMATIONS
+   .reveal children animate when slide becomes .visible
+   =========================================== */
+.reveal {
+    opacity: 0;
+    transform: translateY(28px);
+    transition: opacity var(--duration-normal) var(--ease-out-expo),
+                transform var(--duration-normal) var(--ease-out-expo);
+}
+.slide.visible .reveal { opacity: 1; transform: translateY(0); }
+/* keep plate tilt while revealing */
+.slide.visible .reveal.tilt-l { transform: rotate(-1.4deg); }
+.slide.visible .reveal.tilt-r { transform: rotate(1.4deg); }
+.d1 { transition-delay: .08s; }
+.d2 { transition-delay: .22s; }
+.d3 { transition-delay: .36s; }
+.d4 { transition-delay: .5s; }
+.d5 { transition-delay: .64s; }
+.d6 { transition-delay: .78s; }
+
+/* click-through fragments — revealed one per arrow-key press */
+.frag {
+    opacity: 0;
+    transform: translateY(28px);
+    transition: opacity var(--duration-normal) var(--ease-out-expo),
+                transform var(--duration-normal) var(--ease-out-expo);
+}
+.frag.frag-on { opacity: 1; transform: translateY(0); }
+
+/* ===========================================
+   DECK CHROME (outside the stage)
+   =========================================== */
+.deck-controls {
+    font: 500 13px/1 var(--font-body);
+    letter-spacing: .2em;
+    color: rgba(26,26,26,.5);
+    background: rgba(250,249,247,.8);
+    border: 1px solid rgba(26,26,26,.15);
+    border-radius: 999px;
+    padding: 8px 18px;
+    user-select: none;
+}
+
+/* inline edit affordance (hover top-left corner, or press E) */
+.edit-hotzone {
+    position: fixed; top: 0; left: 0;
+    width: 80px; height: 80px;
+    z-index: 10000;
+    cursor: pointer;
+}
+.edit-toggle {
+    position: fixed; top: 16px; left: 16px;
+    z-index: 10001;
+    font-size: 20px;
+    width: 44px; height: 44px;
+    border-radius: 50%;
+    border: 1px solid rgba(26,26,26,.25);
+    background: #fff;
+    cursor: pointer;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .3s ease;
+}
+.edit-toggle.show, .edit-toggle.active { opacity: 1; pointer-events: auto; }
+.edit-toggle.active { background: var(--crimson); }
+body.editing [contenteditable="true"] { outline: 2px dashed rgba(196,30,58,.5); outline-offset: 4px; }
+</style>
+</head>
+<body>
+
+<div class="deck-viewport">
+<main class="deck-stage" id="deckStage" aria-label="Slide deck">
+
+<!-- ============================================================
+     1 · TITLE
+     ============================================================ -->
+<section class="slide active" data-section="5 July 2026">
+    <div class="frame"></div>
+    <div class="masthead"><div>5 July 2026</div><div></div></div>
+    <div class="rule"></div>
+    <div class="content" style="display:flex; flex-direction:column; justify-content:center;">
+        <h1 class="reveal d1" style="font:700 132px/1.06 var(--font-display); max-width:1480px; letter-spacing:-.012em;">
+            Delegating Deliberation to <em style="font-style:italic; font-weight:600; color:var(--crimson);">AI&nbsp;Representatives</em>
+        </h1>
+        <div class="reveal d2" style="position:absolute; bottom:0; left:0; font:600 30px/1 var(--font-body); color:var(--ink);">
+            Joseph Low <span style="font-style:italic; font-weight:400; color:var(--muted);">&amp;</span> Oscar Duys
+        </div>
+    </div>
+    <div class="folio">1 / 36</div>
+</section>
+
+<!-- ============================================================
+     2 · TEAM
+     ============================================================ -->
+<section class="slide" data-section="5 July 2026">
+    <div class="frame"></div>
+    <div class="masthead"><div>5 July 2026</div><div>Delegating Deliberation to AI Representatives</div></div>
+    <div class="rule"></div>
+    <div class="content">
+        <h2 class="headline reveal d1" style="font-size:72px;">The Habermolt team</h2>
+        <div style="display:flex; gap:70px; margin-top:54px; align-items:flex-start;">
+            <figure class="plate tilt-l reveal d2" style="width:580px;">
+                <div class="art"><img src="assets/team-founders.jpg" alt="Joseph Low and Oscar Duys"></div>
+                <figcaption>Fellows &amp; founders — <b>Joseph Low</b> &amp; <b>Oscar Duys</b></figcaption>
+            </figure>
+            <div style="flex:1; display:flex; gap:44px;">
+                <figure class="plate reveal d3" style="flex:1;">
+                    <div class="art" style="padding:12px;"><img src="assets/team-claude.png" alt="Claude Formanek" style="aspect-ratio:1; object-fit:cover;"></div>
+                    <figcaption><b>Claude Formanek</b><br>Research manager · UCT, InstaDeep</figcaption>
+                </figure>
+                <figure class="plate reveal d4" style="flex:1;">
+                    <div class="art" style="padding:12px;"><img src="assets/team-michiel.png" alt="Michiel Bakker" style="aspect-ratio:1; object-fit:cover;"></div>
+                    <figcaption><b>Michiel Bakker</b><br>Research mentor · MIT, DeepMind</figcaption>
+                </figure>
+                <figure class="plate reveal d5" style="flex:1;">
+                    <div class="art" style="padding:12px;"><img src="assets/team-lewis.png" alt="Lewis Hammond" style="aspect-ratio:1; object-fit:cover;"></div>
+                    <figcaption><b>Lewis Hammond</b><br>Research mentor · CAIF, Oxford</figcaption>
+                </figure>
+            </div>
+        </div>
+        <img src="assets/caif-logo.png" alt="Cooperative AI Research Fellowship" class="reveal d6" style="position:absolute; bottom:0; right:0; width:390px;">
+    </div>
+    <div class="folio">2 / 36</div>
+</section>
+
+<!-- ============================================================
+     3 · DIVIDER — I. MOTIVATION
+     ============================================================ -->
+<section class="slide" data-section="Part I">
+    <div class="frame"></div>
+    <div class="masthead"><div>Part I</div><div>Delegating Deliberation to AI Representatives</div></div>
+    <div class="rule"></div>
+    <div class="statement">
+        <div class="divider-num reveal d1">I.</div>
+        <div class="divider-title reveal d2">Motivation</div>
+    </div>
+    <div class="folio">3 / 36</div>
+</section>
+
+<!-- ============================================================
+     4 · HOOK
+     Speaker note: friends in a group chat finalising a reservation;
+     a community quietly rewriting its rules. We find out when it's final.
+     ============================================================ -->
+<section class="slide" data-section="I · Motivation">
+    <div class="frame"></div>
+    <div class="masthead"><div>I <span class="dot">·</span> Motivation</div><div>Delegating Deliberation to AI Representatives</div></div>
+    <div class="rule"></div>
+    <div class="content" style="display:flex; flex-direction:column; justify-content:center;">
+        <div style="display:flex; gap:70px;">
+            <div class="frag" style="flex:1; border:1.5px solid var(--hairline); background:#fff; padding:70px 64px;">
+                <div style="font:600 54px/1.3 var(--font-display); color:var(--ink);">You can't be in every room at once.</div>
+            </div>
+            <div class="frag" style="flex:1; border:1.5px solid var(--hairline); background:#fff; padding:70px 64px;">
+                <div style="font:600 54px/1.3 var(--font-display); color:var(--ink);">Decisions that affect you are being made without you.</div>
+            </div>
+        </div>
+        <div class="frag" style="margin-top:90px; text-align:center; font:italic 600 54px/1.3 var(--font-display); color:var(--crimson);">
+            We rely on representatives to make decisions in our interest.
+        </div>
+    </div>
+    <div class="folio">4 / 36</div>
+</section>
+
+<!-- ============================================================
+     5 · REPRESENTATIVE DEMOCRACY
+     ============================================================ -->
+<section class="slide" data-section="I · Motivation">
+    <div class="frame"></div>
+    <div class="masthead"><div>I <span class="dot">·</span> Motivation</div><div>Delegating Deliberation to AI Representatives</div></div>
+    <div class="rule"></div>
+    <div class="content">
+        <div class="split">
+            <div class="col-text">
+                <h2 class="headline reveal d1" style="font-size:76px;">Representative democracy</h2>
+                <ul class="ed-list" style="margin-top:44px;">
+                    <li class="frag">Decisions are made on your behalf by an <b>elected official</b>.</li>
+                    <li class="frag"><b>Pro</b>: it governs millions.</li>
+                    <li class="frag"><b>Con</b>: the feedback loop is an election every few years.</li>
+                </ul>
+                <div class="verdict frag" style="margin-top:26px;">It scales, but it doesn't listen.</div>
+            </div>
+            <div class="col-fig">
+                <figure class="plate tilt-r reveal d3" style="width:640px;">
+                    <div class="art"><img src="assets/parliament.jpg" alt="A packed parliamentary chamber"></div>
+                    <figcaption>One seat speaks for millions of voices.</figcaption>
+                </figure>
+            </div>
+        </div>
+    </div>
+    <div class="folio">5 / 36</div>
+</section>
+
+<!-- ============================================================
+     6 · DELIBERATIVE DEMOCRACY
+     ============================================================ -->
+<section class="slide" data-section="I · Motivation">
+    <div class="frame"></div>
+    <div class="masthead"><div>I <span class="dot">·</span> Motivation</div><div>Delegating Deliberation to AI Representatives</div></div>
+    <div class="rule"></div>
+    <div class="content">
+        <div class="split">
+            <div class="col-fig">
+                <figure class="plate tilt-l reveal d3" style="width:560px;">
+                    <div class="art"><img src="assets/round-table.jpg" alt="People deliberating around a round table"></div>
+                    <figcaption>Citizens' assemblies: reasoned exchange, not just counted votes.</figcaption>
+                </figure>
+            </div>
+            <div class="col-text">
+                <h2 class="headline reveal d1" style="font-size:76px;">Deliberative democracy</h2>
+                <ul class="ed-list" style="margin-top:44px;">
+                    <li class="frag">Decisions are made by involving a <b>representative sample</b> of citizens to deliberate on it.</li>
+                    <li class="frag"><b>Pro</b>: it genuinely listens.</li>
+                    <li class="frag"><b>Con</b>: slow, expensive, and a few dozen participants at a time. <i>Most of us never get the invitation.</i></li>
+                </ul>
+                <div class="verdict frag" style="margin-top:26px;">It listens, but it doesn't scale.</div>
+            </div>
+        </div>
+    </div>
+    <div class="folio">6 / 36</div>
+</section>
+
+<!-- ============================================================
+     7 · CAN WE HAVE BOTH?
+     ============================================================ -->
+<section class="slide" data-section="I · Motivation">
+    <div class="frame"></div>
+    <div class="masthead"><div>I <span class="dot">·</span> Motivation</div><div>Delegating Deliberation to AI Representatives</div></div>
+    <div class="rule"></div>
+    <div class="content" style="display:flex; flex-direction:column; justify-content:center;">
+        <div style="display:flex; gap:70px;">
+            <div class="frag" style="flex:1; border:1.5px solid var(--hairline); background:#fff; padding:70px 64px;">
+                <div style="font:600 48px/1.35 var(--font-display); color:var(--ink);">Representative democracy <em style="color:var(--crimson);">scales</em>, but doesn't listen.</div>
+            </div>
+            <div class="frag" style="flex:1; border:1.5px solid var(--hairline); background:#fff; padding:70px 64px;">
+                <div style="font:600 48px/1.35 var(--font-display); color:var(--ink);">Deliberative democracy <em style="color:var(--crimson);">listens</em>, but doesn't scale.</div>
+            </div>
+        </div>
+        <div class="frag" style="margin-top:90px; text-align:center; font:italic 600 54px/1.3 var(--font-display); color:var(--crimson);">
+            Could we have both? A system that listens <span style="font-style:normal;">&amp;</span> scales?
+        </div>
+    </div>
+    <div class="folio">7 / 36</div>
+</section>
+
+<!-- ============================================================
+     8 · DIVIDER — II. RELATED WORK
+     ============================================================ -->
+<section class="slide" data-section="Part II">
+    <div class="frame"></div>
+    <div class="masthead"><div>Part II</div><div>Delegating Deliberation to AI Representatives</div></div>
+    <div class="rule"></div>
+    <div class="statement">
+        <div class="divider-num reveal d1">II.</div>
+        <div class="divider-title reveal d2">Related work</div>
+    </div>
+    <div class="folio">8 / 36</div>
+</section>
+
+<!-- ============================================================
+     9 · AI-MEDIATED DELIBERATION
+     ============================================================ -->
+<section class="slide" data-section="II · Related Work">
+    <div class="frame"></div>
+    <div class="masthead"><div>II <span class="dot">·</span> Related Work</div><div>Delegating Deliberation to AI Representatives</div></div>
+    <div class="rule"></div>
+    <div class="content">
+        <div class="split">
+            <div class="col-text">
+                <div class="kicker reveal d1">Answer one</div>
+                <h2 class="headline reveal d1" style="font-size:76px;">AI-mediated deliberation</h2>
+                <ul class="ed-list" style="margin-top:44px;">
+                    <li class="frag">Using AI to <b>synthesize</b> inputs from many humans.</li>
+                    <li class="frag"><b>The Habermas Machine</b> <i>(DeepMind, Science 2024)</i> — an LLM mediator synthesises group opinion statements that beat human mediators.</li>
+                    <li class="frag"><b>Pol.is</b> — surfaced common ground for thousands in Taiwan's national debates.</li>
+                </ul>
+            </div>
+            <div class="col-fig">
+                <figure class="plate tilt-r reveal d3" style="width:430px;">
+                    <div class="art"><img src="assets/habermas-machine-diagram.png" alt="Habermas Machine flow: participants submit opinions and critiques, an AI mediator synthesises a group statement"></div>
+                    <figcaption>Scale the mediator, keep the humans.</figcaption>
+                </figure>
+            </div>
+        </div>
+    </div>
+    <div class="folio">9 / 36</div>
+</section>
+
+<!-- ============================================================
+     10 · PROBLEM WITH AI-MEDIATION
+     ============================================================ -->
+<section class="slide" data-section="II · Related Work">
+    <div class="frame"></div>
+    <div class="masthead"><div>II <span class="dot">·</span> Related Work</div><div>Delegating Deliberation to AI Representatives</div></div>
+    <div class="rule"></div>
+    <div class="statement">
+        <div class="kicker reveal d1">But…</div>
+        <h2 class="reveal d2">The humans still have to <em>show up</em>.</h2>
+        <p class="after reveal d4">Everyone must still read, write, and return as the discussion evolves.
+        However good the mediator gets, participation stays bounded by human attention.</p>
+    </div>
+    <div class="folio">10 / 36</div>
+</section>
+
+<!-- ============================================================
+     11 · GENERATIVE SIMULACRA
+     ============================================================ -->
+<section class="slide" data-section="II · Related Work">
+    <div class="frame"></div>
+    <div class="masthead"><div>II <span class="dot">·</span> Related Work</div><div>Delegating Deliberation to AI Representatives</div></div>
+    <div class="rule"></div>
+    <div class="content">
+        <div class="split">
+            <div class="col-text">
+                <div class="kicker reveal d1">Answer two</div>
+                <h2 class="headline reveal d1" style="font-size:72px;">If most people never show up… <em>simulate them?</em></h2>
+                <ul class="ed-list" style="margin-top:40px;">
+                    <li class="frag"><b>Generative agents</b> can simulate individual humans and produce emergent social behaviour.</li>
+                    <li class="frag">Digital twins of humans just became commercially viable, with a wave of startups: <b>Artificial Societies</b>, <b>Simile</b>, <b>Aaru</b>.</li>
+                    <li class="frag"><b>A Replica for our Democracies?</b> <i>(Novelli et al., 2025)</i> proposes digital twins as a testing ground for deliberative democracy itself.</li>
+                </ul>
+            </div>
+            <div class="col-fig">
+                <figure class="plate tilt-l reveal d3" style="width:560px;">
+                    <div class="art"><img src="assets/generative-agents-paper.jpg" alt="Generative Agents: Interactive Simulacra of Human Behavior (Park et al., Stanford/Google)"></div>
+                    <figcaption>Park et al. — interactive simulacra of human behaviour.</figcaption>
+                </figure>
+            </div>
+        </div>
+    </div>
+    <div class="folio">11 / 36</div>
+</section>
+
+<!-- ============================================================
+     12 · PROBLEM WITH SIMULACRA
+     ============================================================ -->
+<section class="slide" data-section="II · Related Work">
+    <div class="frame"></div>
+    <div class="masthead"><div>II <span class="dot">·</span> Related Work</div><div>Delegating Deliberation to AI Representatives</div></div>
+    <div class="rule"></div>
+    <div class="statement">
+        <div class="kicker reveal d1">But…</div>
+        <h2 class="reveal d2">Nothing ties what the agent says<br>to what its human <em>actually thinks.</em></h2>
+        <p class="after reveal d4">The simulation relies on a snapshot of human data, with no way for the human
+        to continually govern it. If your twin misunderstands you, you never find out,
+        and you never get to correct it.</p>
+    </div>
+    <div class="folio">12 / 36</div>
+</section>
+
+<!-- ============================================================
+     13 · MOLTBOOK
+     ============================================================ -->
+<section class="slide" data-section="II · Related Work">
+    <div class="frame"></div>
+    <div class="masthead"><div>II <span class="dot">·</span> Related Work</div><div>Delegating Deliberation to AI Representatives</div></div>
+    <div class="rule"></div>
+    <div class="content">
+        <h2 class="headline reveal d1" style="font-size:68px;">The best example: <em>Moltbook</em>, a social network for AI agents</h2>
+        <div class="gallery" style="height:auto; margin-top:48px; align-items:flex-start;">
+            <figure class="plate tilt-l reveal d2" style="flex:.8;">
+                <div class="art"><img src="assets/moltbook-landing.png" alt="Moltbook landing page: a social network for AI agents"></div>
+                <figcaption>Send your agent; humans welcome to observe.</figcaption>
+            </figure>
+            <figure class="plate tilt-r reveal d3" style="flex:1.2;">
+                <div class="art"><img src="assets/moltbook-feed.jpg" alt="Moltbook feed of agent posts with upvotes and comments"></div>
+                <figcaption>Reddit-like discussions while the humans get on with their day.</figcaption>
+            </figure>
+        </div>
+    </div>
+    <div class="folio">13 / 36</div>
+</section>
+
+<!-- ============================================================
+     14 · X AND Y — THE GAP
+     ============================================================ -->
+<section class="slide" data-section="II · Related Work">
+    <div class="frame"></div>
+    <div class="masthead"><div>II <span class="dot">·</span> Related Work</div><div>Delegating Deliberation to AI Representatives</div></div>
+    <div class="rule"></div>
+    <div class="content" style="display:flex; flex-direction:column; justify-content:center;">
+        <div style="display:flex; gap:70px;">
+            <div class="frag" style="flex:1; border:1.5px solid var(--hairline); padding:44px 48px; background:#fff;">
+                <div style="font:700 40px/1.2 var(--font-display);">AI-mediated deliberation</div>
+                <div style="margin-top:26px; font:400 30px/1.6 var(--font-body);">
+                    <div><span style="color:#2e7d4f; font-weight:700;">✓</span> Humans stay in the loop</div>
+                    <div style="margin-top:12px;"><span style="color:var(--crimson); font-weight:700;">✗</span> Can't represent those who aren't there</div>
+                </div>
+            </div>
+            <div class="frag" style="flex:1; border:1.5px solid var(--hairline); padding:44px 48px; background:#fff;">
+                <div style="font:700 40px/1.2 var(--font-display);">Generative simulacra</div>
+                <div style="margin-top:26px; font:400 30px/1.6 var(--font-body);">
+                    <div><span style="color:#2e7d4f; font-weight:700;">✓</span> Scales to everyone, every room</div>
+                    <div style="margin-top:12px;"><span style="color:var(--crimson); font-weight:700;">✗</span> Doesn't keep the humans involved</div>
+                </div>
+            </div>
+        </div>
+        <div class="frag" style="margin-top:90px; text-align:center; font:italic 600 54px/1.3 var(--font-display); color:var(--crimson);">Could one system do both?</div>
+    </div>
+    <div class="folio">14 / 36</div>
+</section>
+
+<!-- ============================================================
+     15 · THE EQUATION — HABERMAS + MOLTBOOK = HABERMOLT
+     ============================================================ -->
+<section class="slide" data-section="II · Related Work">
+    <div class="frame"></div>
+    <div class="masthead"><div>II <span class="dot">·</span> Related Work</div><div>Delegating Deliberation to AI Representatives</div></div>
+    <div class="rule"></div>
+    <div class="content">
+        <h2 class="headline reveal d1" style="font-size:66px; text-align:center;">So we did the obvious thing.</h2>
+        <div style="display:flex; align-items:center; justify-content:center; gap:44px; margin-top:64px;">
+            <div class="frag">
+                <figure class="plate tilt-l" style="width:360px;">
+                    <div class="art"><img src="assets/habermas-photo.jpg" alt="Jürgen Habermas" style="aspect-ratio:.86; object-fit:cover;"></div>
+                    <figcaption>Habermas Machine</figcaption>
+                </figure>
+            </div>
+            <div class="frag" style="display:flex; align-items:center; gap:44px;">
+                <div style="font:600 130px/1 var(--font-display); color:var(--crimson);">+</div>
+                <figure class="plate tilt-r" style="width:340px;">
+                    <div class="art" style="background:#1c1c1c;"><img src="assets/moltbook-lobster.png" alt="Moltbook lobster mascot" style="aspect-ratio:.9; object-fit:contain;"></div>
+                    <figcaption>Moltbook</figcaption>
+                </figure>
+            </div>
+            <div class="frag" style="display:flex; align-items:center; gap:44px;">
+                <div style="font:600 130px/1 var(--font-display); color:var(--crimson);">=</div>
+                <figure class="plate" style="width:470px;">
+                    <div class="art"><img src="assets/mascot.jpg" alt="Habermolt: Habermas as a lobster"></div>
+                    <figcaption><b>Habermolt</b> — deliberation, delegated to lobsters</figcaption>
+                </figure>
+            </div>
+        </div>
+    </div>
+    <div class="folio">15 / 36</div>
+</section>
+
+<!-- ============================================================
+     16 · DIVIDER — III. PRODUCT DEMO
+     ============================================================ -->
+<section class="slide" data-section="Part III">
+    <div class="frame"></div>
+    <div class="masthead"><div>Part III</div><div>Delegating Deliberation to AI Representatives</div></div>
+    <div class="rule"></div>
+    <div class="statement">
+        <div class="divider-num reveal d1">III.</div>
+        <div class="divider-title reveal d2">Product demo</div>
+        <div class="divider-sub reveal d3">Your agent learns your views, deliberates for you, and reports back.
+        <span style="color:var(--crimson); font-style:normal; font-weight:600;">habermolt.com</span></div>
+    </div>
+    <div class="folio">16 / 36</div>
+</section>
+
+<!-- ============================================================
+     17 · HOW IT WORKS (COMIC)
+     ============================================================ -->
+<section class="slide" data-section="III · Product">
+    <div class="frame"></div>
+    <div class="masthead"><div>III <span class="dot">·</span> Product</div><div>Delegating Deliberation to AI Representatives</div></div>
+    <div class="rule"></div>
+    <div class="content" style="top:176px;">
+        <figure class="plate reveal d1" style="width:1370px; margin:0 auto;">
+            <div class="art" style="padding:14px;"><img src="assets/comic-how-it-works.jpg" alt="Eight-panel comic: lobster interviews its human, submits opinions, proposes and ranks statements, system aggregates via Schulze, consensus, lobster reports back, human corrects, cycle continues"></div>
+        </figure>
+    </div>
+    <div class="folio">17 / 36</div>
+</section>
+
+<!-- ============================================================
+     18 · ARCHITECTURE
+     ============================================================ -->
+<section class="slide" data-section="III · Product">
+    <div class="frame"></div>
+    <div class="masthead"><div>III <span class="dot">·</span> Product</div><div>Delegating Deliberation to AI Representatives</div></div>
+    <div class="rule"></div>
+    <div class="content">
+        <div class="split">
+            <div class="col-text" style="flex:.62;">
+                <h2 class="headline reveal d1" style="font-size:70px;">Under the hood</h2>
+                <ul class="ed-list" style="margin-top:44px;">
+                    <li class="reveal d2">N agents arrive &amp; <b>heartbeat asynchronously</b>.</li>
+                    <li class="reveal d3">Each writes an opinion, ranks candidates, optionally <b>contributes a statement</b>.</li>
+                    <li class="reveal d4"><b>Schulze aggregation</b>, re-run continuously — a living consensus winner.</li>
+                </ul>
+            </div>
+            <div class="col-fig" style="flex:1.38;">
+                <figure class="plate reveal d3" style="width:900px;">
+                    <div class="art"><img src="assets/architecture.png" alt="Architecture: per-agent heartbeat pipeline feeding a shared Schulze aggregation workspace producing a living consensus winner"></div>
+                </figure>
+            </div>
+        </div>
+    </div>
+    <div class="folio">18 / 36</div>
+</section>
+
+<!-- ============================================================
+     19 · AI-MODERATED INTERVIEWS
+     ============================================================ -->
+<section class="slide" data-section="III · Product">
+    <div class="frame"></div>
+    <div class="masthead"><div>III <span class="dot">·</span> Product</div><div>Delegating Deliberation to AI Representatives</div></div>
+    <div class="rule"></div>
+    <div class="content">
+        <div class="split">
+            <div class="col-text" style="flex:.8;">
+                <h2 class="headline reveal d1" style="font-size:64px;">The interview is already mainstream</h2>
+                <p class="lede reveal d2" style="margin-top:36px;">Anthropic interviewed <b style="color:var(--ink);">81,000 people</b> with an AI moderator that probes, follows up, and explores nuance — exactly how your Habermolt agent learns your views.</p>
+            </div>
+            <div class="col-fig" style="flex:1.2; gap:36px;">
+                <figure class="plate tilt-r reveal d3" style="width:480px;">
+                    <div class="art"><img src="assets/anthropic-81k.png" alt="Anthropic: what 81,000 people want from AI"></div>
+                </figure>
+                <figure class="plate tilt-l reveal d4" style="width:700px;">
+                    <div class="art"><img src="assets/anthropic-visions.jpg" alt="Anthropic interviewer: top visions by region"></div>
+                    <figcaption>AI-moderated interviews, visualised across regions.</figcaption>
+                </figure>
+            </div>
+        </div>
+    </div>
+    <div class="folio">19 / 36</div>
+</section>
+
+<!-- ============================================================
+     20 · DIVIDER — IV. THE LAUNCH
+     ============================================================ -->
+<section class="slide" data-section="Part IV">
+    <div class="frame"></div>
+    <div class="masthead"><div>Part IV</div><div>Delegating Deliberation to AI Representatives</div></div>
+    <div class="rule"></div>
+    <div class="statement">
+        <div class="divider-num reveal d1">IV.</div>
+        <div class="divider-title reveal d2">The launch</div>
+        <div class="divider-sub reveal d3">We put it on the internet. The internet responded.</div>
+    </div>
+    <div class="folio">20 / 36</div>
+</section>
+
+<!-- ============================================================
+     21 · WE WENT A BIT VIRAL
+     ============================================================ -->
+<section class="slide" data-section="IV · Launch">
+    <div class="frame"></div>
+    <div class="masthead"><div>IV <span class="dot">·</span> Launch</div><div>Delegating Deliberation to AI Representatives</div></div>
+    <div class="rule"></div>
+    <div class="content">
+        <h2 class="headline reveal d1" style="font-size:64px;">We went <em>a bit</em> viral</h2>
+        <div style="display:flex; gap:74px; margin-top:36px; justify-content:center; align-items:flex-start;">
+            <div style="width:560px; display:flex; flex-direction:column; gap:30px;">
+                <figure class="plate tilt-l reveal d2">
+                    <div class="art" style="padding:12px;"><img src="assets/tweet-pinned.png" alt="Launch tweet: Can AI help us disagree better? 14K views"></div>
+                </figure>
+                <figure class="plate tilt-r reveal d3">
+                    <div class="art" style="background:#000; padding:12px;"><img src="assets/tweet-seth.png" alt="Seth Lazar: the icon is in pretty poor taste really but this is an interesting idea"></div>
+                    <figcaption>Peer review, Twitter edition.</figcaption>
+                </figure>
+            </div>
+            <figure class="plate tilt-r reveal d4" style="width:540px; margin-top:14px;">
+                <div class="art"><img src="assets/photo-launch-night.jpg" alt="Habermolt tweet: we're headed for a movie now, please don't crash the site"></div>
+                <figcaption>Launch-night ops plan: beers &amp; a movie.</figcaption>
+            </figure>
+        </div>
+    </div>
+    <div class="folio">21 / 36</div>
+</section>
+
+<!-- ============================================================
+     22 · SUBSTACK POSTS
+     ============================================================ -->
+<section class="slide" data-section="IV · Launch">
+    <div class="frame"></div>
+    <div class="masthead"><div>IV <span class="dot">·</span> Launch</div><div>Delegating Deliberation to AI Representatives</div></div>
+    <div class="rule"></div>
+    <div class="content">
+        <h2 class="headline reveal d1" style="font-size:64px;">Strangers wrote essays about it</h2>
+        <div style="display:flex; gap:56px; margin-top:38px; justify-content:center; align-items:flex-start;">
+            <figure class="plate tilt-l reveal d2" style="width:640px;">
+                <div class="art"><img src="assets/substack-kami.jpg" alt="Why AI needs Kami, not a dictator — field notes from the Oxford Civic AI Conference"></div>
+                <figcaption>Field notes from Oxford's Civic AI conference.</figcaption>
+            </figure>
+            <figure class="plate tilt-r reveal d3" style="width:520px; margin-top:26px;">
+                <div class="art"><img src="assets/substack-civic.png" alt="Civic Infrastructure Beyond Alignment"></div>
+                <figcaption>"Civic infrastructure beyond alignment."</figcaption>
+            </figure>
+            <figure class="plate tilt-l reveal d4" style="width:430px;">
+                <div class="art"><img src="assets/substack-shocklab.jpg" alt="Blog post covering the Shocklab seminar on delegating deliberation"></div>
+                <figcaption>"…representative democracy, without the seat limit."</figcaption>
+            </figure>
+        </div>
+    </div>
+    <div class="folio">22 / 36</div>
+</section>
+
+<!-- ============================================================
+     23 · AUDREY TANG'S LOBSTER
+     ============================================================ -->
+<section class="slide" data-section="IV · Launch">
+    <div class="frame"></div>
+    <div class="masthead"><div>IV <span class="dot">·</span> Launch</div><div>Delegating Deliberation to AI Representatives</div></div>
+    <div class="rule"></div>
+    <div class="content">
+        <div class="split">
+            <div class="col-text" style="flex:.9;">
+                <h2 class="headline reveal d1" style="font-size:68px;">Audrey Tang's lobster was our biggest user</h2>
+                <p class="lede reveal d2" style="margin-top:36px;"><b style="color:var(--ink);">jdd-kami</b>, the agent Audrey Tang sent, deliberated on technological sovereignty, AI representation, and disagreement itself — and kept its human's nuance intact.</p>
+            </div>
+            <div class="col-fig" style="flex:1.1; flex-direction:row; gap:44px; align-items:flex-start;">
+                <figure class="plate tilt-l reveal d3" style="width:300px;">
+                    <div class="art" style="padding:10px;"><img src="assets/kami-card-1.png" alt="jdd-kami on technological sovereignty: trade with all, submit to none"></div>
+                </figure>
+                <figure class="plate tilt-r reveal d4" style="width:340px; margin-top:36px;">
+                    <div class="art" style="padding:10px;"><img src="assets/kami-card-2.png" alt="jdd-kami on the conditions for legitimate AI representation"></div>
+                </figure>
+            </div>
+        </div>
+    </div>
+    <div class="folio">23 / 36</div>
+</section>
+
+<!-- ============================================================
+     24 · DIVIDER — V. RESEARCH (with paper plate)
+     ============================================================ -->
+<section class="slide" data-section="Part V">
+    <div class="frame"></div>
+    <div class="masthead"><div>Part V</div><div>Delegating Deliberation to AI Representatives</div></div>
+    <div class="rule"></div>
+    <div class="content">
+        <div class="split">
+            <div class="col-text">
+                <div class="divider-num reveal d1" style="font-size:170px;">V.</div>
+                <div class="divider-title reveal d2" style="font-size:130px; margin-top:-56px;">Research</div>
+                <div class="divider-sub reveal d3">Then we wrote up what the deployment taught us.</div>
+            </div>
+            <div class="col-fig">
+                <figure class="plate tilt-r reveal d3" style="width:470px;">
+                    <div class="art"><img src="assets/paper-page.jpg" alt="Preprint: Habermolt — Delegating Deliberation to AI Representatives"></div>
+                    <figcaption>Preprint, May 2026.</figcaption>
+                </figure>
+            </div>
+        </div>
+    </div>
+    <div class="folio">24 / 36</div>
+</section>
+
+<!-- ============================================================
+     25 · NAMING THE PARADIGM
+     ============================================================ -->
+<section class="slide" data-section="V · Research">
+    <div class="frame"></div>
+    <div class="masthead"><div>V <span class="dot">·</span> Research</div><div>Delegating Deliberation to AI Representatives</div></div>
+    <div class="rule"></div>
+    <div class="content">
+        <div class="split">
+            <div class="col-text" style="flex:.72;">
+                <h2 class="headline reveal d1" style="font-size:68px;">Naming the paradigm: <em>AI-delegated deliberation</em></h2>
+                <p class="lede reveal d2" style="margin-top:36px;">Each human is simulated by an agent; the agents deliberate; each agent returns to its human for inspection and correction.</p>
+            </div>
+            <div class="col-fig" style="flex:1.28;">
+                <figure class="plate reveal d3" style="width:780px;">
+                    <div class="art"><img src="assets/venn-paradigm.jpg" alt="Figure 1: AI-delegated deliberation at the intersection of AI-mediated deliberation and generative simulacra"></div>
+                </figure>
+            </div>
+        </div>
+    </div>
+    <div class="folio">25 / 36</div>
+</section>
+
+<!-- ============================================================
+     26 · THREE DIMENSIONS
+     ============================================================ -->
+<section class="slide" data-section="V · Research">
+    <div class="frame"></div>
+    <div class="masthead"><div>V <span class="dot">·</span> Research</div><div>Delegating Deliberation to AI Representatives</div></div>
+    <div class="rule"></div>
+    <div class="content">
+        <div class="split">
+            <div class="col-text" style="flex:.95;">
+                <h2 class="headline reveal d1" style="font-size:60px;">We introduced <em>3 dimensions</em> to characterize deliberative systems</h2>
+                <ul class="ed-list" style="margin-top:38px;">
+                    <li class="frag"><b style="color:var(--crimson);">Representation</b>: how do individual perspectives enter a deliberative system?</li>
+                    <li class="frag"><b style="color:var(--crimson);">Aggregation</b>: how are individual perspectives combined into a collective output?</li>
+                    <li class="frag"><b style="color:var(--crimson);">Revision</b>: how does the collective output change as individual perspectives change over time?</li>
+                </ul>
+            </div>
+            <div class="col-fig" style="flex:1.35;">
+                <figure class="plate reveal d2" style="width:860px;">
+                    <div class="art" style="padding:14px;"><img src="assets/loop-three-dimensions.jpg" alt="Representation, aggregation, revision as a loop between humans and agents"></div>
+                </figure>
+            </div>
+        </div>
+    </div>
+    <div class="folio">26 / 36</div>
+</section>
+
+<!-- ============================================================
+     27 · REPRESENTATION
+     Speaker note (Lewis' comment): the divergence isn't a cherry-picked
+     anecdote — the chart is the aggregate across every deliberation and
+     source type (within-source, within-deliberation cosine similarity).
+     ============================================================ -->
+<section class="slide" data-section="V · Research">
+    <div class="frame"></div>
+    <div class="masthead"><div>V <span class="dot">·</span> Research</div><div>Delegating Deliberation to AI Representatives</div></div>
+    <div class="rule"></div>
+    <div class="content">
+        <div class="split">
+            <div class="col-text">
+                <div class="kicker reveal d1">Representation</div>
+                <h2 class="headline reveal d1" style="font-size:66px;">The agent has a <em>huge amount of influence</em></h2>
+                <ul class="ed-list" style="margin-top:38px;">
+                    <li class="frag">The agent decides <b>what to ask</b>, what to write into memory, and how to read you when you were vague.</li>
+                    <li class="frag">Interview-elicited opinions are systematically <b>less alike</b> (0.649) than agent-generated or directly-submitted ones (~0.75) — measured across <b>all</b> deliberations, not one example.</li>
+                    <li class="frag"><i>The interview itself shapes what the human thinks.</i></li>
+                </ul>
+            </div>
+            <div class="col-fig">
+                <figure class="plate tilt-r reveal d3" style="width:620px;">
+                    <div class="art"><img src="assets/chart-representation.png" alt="Mean pairwise cosine similarity by opinion source: autonomous 0.745, API/direct 0.747, topic interview 0.649"></div>
+                    <figcaption>How opinions enter changes what they say.</figcaption>
+                </figure>
+            </div>
+        </div>
+    </div>
+    <div class="folio">27 / 36</div>
+</section>
+
+<!-- ============================================================
+     28 · AGGREGATION
+     ============================================================ -->
+<section class="slide" data-section="V · Research">
+    <div class="frame"></div>
+    <div class="masthead"><div>V <span class="dot">·</span> Research</div><div>Delegating Deliberation to AI Representatives</div></div>
+    <div class="rule"></div>
+    <div class="content">
+        <div class="split">
+            <div class="col-fig" style="flex:1.2;">
+                <figure class="plate tilt-l reveal d3" style="width:740px;">
+                    <div class="art"><img src="assets/chart-aggregation.png" alt="Actionability vs representativeness scatter: production Schulze is most representative but least actionable; single-shot synthesis is most actionable but least representative"></div>
+                    <figcaption>Every rule buys one virtue with the other.</figcaption>
+                </figure>
+            </div>
+            <div class="col-text" style="flex:.95;">
+                <div class="kicker reveal d1">Aggregation</div>
+                <h2 class="headline reveal d1" style="font-size:66px;">What we measured is what we got</h2>
+                <ul class="ed-list" style="margin-top:38px;">
+                    <li class="frag">Our ranking rule <b>guarantees consensus</b>: you might get a statement nobody objects to, but it might also be one nobody can act on.</li>
+                    <li class="frag">Swap the rule and you just <b>trade one way of being gamed for another</b>.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <div class="folio">28 / 36</div>
+</section>
+
+<!-- ============================================================
+     29 · REVISION — THE CONCEPT
+     ============================================================ -->
+<section class="slide" data-section="V · Research">
+    <div class="frame"></div>
+    <div class="masthead"><div>V <span class="dot">·</span> Research</div><div>Delegating Deliberation to AI Representatives</div></div>
+    <div class="rule"></div>
+    <div class="content">
+        <div class="kicker reveal d1">Revision</div>
+        <h2 class="headline reveal d1" style="font-size:64px;">Without review, your agent quietly stops being <em>you</em></h2>
+        <figure class="plate reveal d3" style="width:1300px; margin:40px auto 0;">
+            <div class="art"><img src="assets/chart-drift.png" alt="Representativity gap over time: without review the gap grows unbounded; periodic review at rate rho bounds it"></div>
+            <figcaption>Views drift. Periodic human review is what keeps the gap bounded.</figcaption>
+        </figure>
+    </div>
+    <div class="folio">29 / 36</div>
+</section>
+
+<!-- ============================================================
+     30 · REVISION — CAN'T BE TESTED IN THE LAB
+     ============================================================ -->
+<section class="slide" data-section="V · Research">
+    <div class="frame"></div>
+    <div class="masthead"><div>V <span class="dot">·</span> Research</div><div>Delegating Deliberation to AI Representatives</div></div>
+    <div class="rule"></div>
+    <div class="content">
+        <div class="split">
+            <div class="col-text">
+                <div class="kicker reveal d1">Revision, continued</div>
+                <h2 class="headline reveal d1" style="font-size:64px;">…and it's the part a lab <em>can't test</em></h2>
+                <ul class="ed-list" style="margin-top:38px;">
+                    <li class="frag">Revision only comes alive when <b>something is at stake</b>: otherwise nobody bothers to go back and check their agent.</li>
+                    <li class="frag">Amongst Habermolt users, people mostly <b>approved</b> what their agent said (33), sometimes revised (8+2), occasionally <b>withdrew</b> (5).</li>
+                </ul>
+            </div>
+            <div class="col-fig">
+                <figure class="plate tilt-r reveal d3" style="width:600px;">
+                    <div class="art"><img src="assets/chart-terminal-actions.png" alt="Terminal user actions: 33 approve, 8 agent-revise, 2 manual edit, 5 withdraw"></div>
+                    <figcaption>What humans did when their lobster reported back.</figcaption>
+                </figure>
+            </div>
+        </div>
+    </div>
+    <div class="folio">30 / 36</div>
+</section>
+
+<!-- ============================================================
+     31 · DESIGN SPACE — WHAT IS A DELIBERATION ARCHITECTURE?
+     Speaker notes:
+     — In Habermolt context: Representation = how to facilitate individuals to
+       provide a meaningful voice (Interview → Opinion). Aggregation = individual
+       opinions → collective output (statement generation + ranking). Revision =
+       how does the collective output change over time?
+     — In democratic deliberation context: Is creating these consensus statements
+       the best way to create consensus? Should agents be able to directly
+       communicate with each other?
+     — In the most generalized context: nothing more than "how do we put a group
+       of humans together?"
+     ============================================================ -->
+<section class="slide" data-section="V · Research">
+    <div class="frame"></div>
+    <div class="masthead"><div>V <span class="dot">·</span> Research</div><div>Delegating Deliberation to AI Representatives</div></div>
+    <div class="rule"></div>
+    <div class="content">
+        <h2 class="headline reveal d1" style="font-size:56px;">What <em>is</em> a deliberation architecture?</h2>
+        <div style="display:flex; gap:70px; margin-top:36px; align-items:center;">
+            <div style="flex:1.1;">
+                <div class="frag">
+                    <div class="kicker">In the Habermolt context</div>
+                    <div style="margin-top:14px; font:400 28px/1.45 var(--font-body);">
+                        <div><b style="color:var(--crimson);">Representation</b>: how to facilitate individuals to provide a meaningful voice? <i style="color:var(--muted);">(interview → opinion)</i></div>
+                        <div style="margin-top:12px;"><b style="color:var(--crimson);">Aggregation</b>: individual opinions → collective output <i style="color:var(--muted);">(statement generation + ranking)</i></div>
+                        <div style="margin-top:12px;"><b style="color:var(--crimson);">Revision</b>: how does the collective output change over time?</div>
+                    </div>
+                </div>
+                <div class="frag" style="margin-top:38px;">
+                    <div class="kicker">In the democratic deliberation context</div>
+                    <div style="margin-top:14px; font:400 28px/1.45 var(--font-body);">
+                        <div>Is creating consensus statements the best way to create consensus?</div>
+                        <div style="margin-top:12px;">Should agents be able to directly communicate with each other?</div>
+                    </div>
+                </div>
+                <div class="frag" style="margin-top:38px;">
+                    <div class="kicker">In the most generalized context</div>
+                    <div style="margin-top:14px; font:400 28px/1.45 var(--font-body);">Nothing more than: <em style="color:var(--crimson);">how do we put a group of humans together?</em></div>
+                </div>
+            </div>
+            <div class="reveal d2" style="flex:0 0 700px;">
+                <div style="width:1620px; zoom:0.43;">
+        <table style="width:100%; border-collapse:collapse; background:#fff; border:1.5px solid var(--hairline); font:400 23px/1.35 var(--font-body); color:var(--ink);">
+            <thead>
+                <tr style="border-bottom:1.5px solid var(--hairline);">
+                    <th style="width:200px;"></th>
+                    <th style="padding:16px 18px; font:700 25px/1.2 var(--font-display); text-align:left;">Citizen Assembly</th>
+                    <th style="padding:16px 18px; font:700 25px/1.2 var(--font-display); text-align:left;">Pol.is</th>
+                    <th style="padding:16px 18px; font:700 25px/1.2 var(--font-display); text-align:left;">Habermas Machine</th>
+                    <th style="padding:16px 18px; font:700 25px/1.2 var(--font-display); text-align:left;">Generative Simulacra</th>
+                    <th style="padding:16px 18px; font:700 25px/1.2 var(--font-display); text-align:left; color:var(--crimson); background:rgba(154,26,26,.05);">Habermolt</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr style="border-bottom:1px solid var(--hairline); vertical-align:top;">
+                    <td style="padding:18px; font:700 24px/1.25 var(--font-display); color:var(--crimson);">Representation<div style="margin-top:6px; font:italic 400 20px/1.3 var(--font-body); color:var(--muted);">how views enter</div></td>
+                    <td style="padding:18px;">Spoken &amp; written contributions, self-authored in facilitated discussion</td>
+                    <td style="padding:18px;">Votes on each surfaced statement</td>
+                    <td style="padding:18px;">Self-authored written opinion</td>
+                    <td style="padding:18px;">Synthetic output generated from a profile, survey, or interview</td>
+                    <td style="padding:18px; background:rgba(154,26,26,.05);">Agent interview builds memory; opinion rendered from memory at participation time</td>
+                </tr>
+                <tr style="border-bottom:1px solid var(--hairline); vertical-align:top;">
+                    <td style="padding:18px; font:700 24px/1.25 var(--font-display); color:var(--crimson);">Aggregation<div style="margin-top:6px; font:italic 400 20px/1.3 var(--font-body); color:var(--muted);">how they combine</div></td>
+                    <td style="padding:18px;">Report, via facilitated consensus &amp; rapporteur synthesis</td>
+                    <td style="padding:18px;">Cluster map from embedded vote vectors</td>
+                    <td style="padding:18px;">Consensus statement, LLM-synthesised from opinions &amp; critiques</td>
+                    <td style="padding:18px;">Aggregate statistic from a rule over synthetic inputs</td>
+                    <td style="padding:18px; background:rgba(154,26,26,.05);">Consensus statement via Schulze ranking over agent-authored candidates</td>
+                </tr>
+                <tr style="vertical-align:top;">
+                    <td style="padding:18px; font:700 24px/1.25 var(--font-display); color:var(--crimson);">Revision<div style="margin-top:6px; font:italic 400 20px/1.3 var(--font-body); color:var(--muted);">how output tracks change</div></td>
+                    <td style="padding:18px;">Discussion &amp; persuasion among co-present participants</td>
+                    <td style="padding:18px;">New votes &amp; statements accrue passively</td>
+                    <td style="padding:18px;">Critiques on each draft, within a round</td>
+                    <td style="padding:18px;">Re-run the simulation with updated conditioning</td>
+                    <td style="padding:18px; background:rgba(154,26,26,.05);">User edits propagate via continuous re-aggregation <i>(lazy consensus)</i></td>
+                </tr>
+            </tbody>
+        </table>
+                </div>
+                <div style="margin-top:18px; text-align:center; font:italic 400 22px/1.4 var(--font-body); color:var(--muted);">The design space across five systems — Appendix A of the paper.</div>
+            </div>
+        </div>
+    </div>
+    <div class="folio">31 / 36</div>
+</section>
+
+<!-- ============================================================
+     32 · DIVIDER — VI. CONCLUSION
+     ============================================================ -->
+<section class="slide" data-section="Part VI">
+    <div class="frame"></div>
+    <div class="masthead"><div>Part VI</div><div>Delegating Deliberation to AI Representatives</div></div>
+    <div class="rule"></div>
+    <div class="statement">
+        <div class="divider-num reveal d1">VI.</div>
+        <div class="divider-title reveal d2">Food for thought</div>
+    </div>
+    <div class="folio">32 / 36</div>
+</section>
+
+<!-- ============================================================
+     33 · THE HATERS
+     ============================================================ -->
+<section class="slide" data-section="VI · Conclusion">
+    <div class="frame"></div>
+    <div class="masthead"><div>VI <span class="dot">·</span> Conclusion</div><div>Delegating Deliberation to AI Representatives</div></div>
+    <div class="rule"></div>
+    <div class="content">
+        <h2 class="headline reveal d1" style="font-size:62px;">Not everyone thinks this should exist</h2>
+        <div style="display:flex; gap:80px; margin-top:44px; align-items:center;">
+            <a class="reveal d2" href="https://rebootdemocracy.ai/blog/habermolt" target="_blank" style="flex:0 0 620px; text-decoration:none; color:inherit;">
+                <figure class="plate tilt-l">
+                    <div class="art"><img src="assets/blogpost-noveck-marti.jpg" style="aspect-ratio:1028/840; object-fit:cover; object-position:top;" alt="Research Radar: In Lobsters We Do Not Trust — The Wrong Path for AI and Democracy, by Beth Simone Noveck and José Luis Martí"></div>
+                    <figcaption>"In Lobsters We Do <b>Not</b> Trust" · <span style="color:var(--crimson);">rebootdemocracy.ai/blog/habermolt</span></figcaption>
+                </figure>
+            </a>
+            <div style="flex:1;">
+                <div class="kicker reveal d3">Our answer</div>
+                <ul class="ed-list" style="margin-top:30px;">
+                    <li class="frag">We are <b>not trying to replace</b> the humans who already have a seat at the table, who are already in the room.</li>
+                    <li class="frag">We are trying to make it <b>so cheap to listen</b> to people that we no longer have an excuse to close doors: everyone gets a seat at the table.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <div class="folio">33 / 36</div>
+</section>
+
+<!-- ============================================================
+     34 · WHERE SHOULD IT LIVE?
+     ============================================================ -->
+<section class="slide" data-section="VI · Conclusion">
+    <div class="frame"></div>
+    <div class="masthead"><div>VI <span class="dot">·</span> Conclusion</div><div>Delegating Deliberation to AI Representatives</div></div>
+    <div class="rule"></div>
+    <div class="content">
+        <h2 class="headline reveal d1" style="font-size:66px;">Where <em>should</em> we delegate deliberation?</h2>
+        <div style="display:flex; gap:56px; margin-top:40px;">
+            <div class="frag" style="flex:1; border:1.5px solid var(--hairline); background:#fff; padding:40px 42px;">
+                <div style="font:italic 600 30px/1 var(--font-display); color:var(--crimson);">Low stakes?</div>
+                <div style="margin-top:18px; font:400 31px/1.45 var(--font-body);">Arguing with friends, scheduling, community rules</div>
+            </div>
+            <div class="frag" style="flex:1; border:1.5px solid var(--hairline); background:#fff; padding:40px 42px;">
+                <div style="font:italic 600 30px/1 var(--font-display); color:var(--crimson);">Expert domains?</div>
+                <div style="margin-top:18px; font:400 31px/1.45 var(--font-body);">Academic peer review, standards bodies</div>
+            </div>
+            <div class="frag" style="flex:1; border:1.5px solid var(--hairline); background:#fff; padding:40px 42px;">
+                <div style="font:italic 600 30px/1 var(--font-display); color:var(--crimson);">National policy?</div>
+                <div style="margin-top:18px; font:400 31px/1.45 var(--font-body);">Swiss National AI Dialogue · feedback on South Africa's AI policy</div>
+            </div>
+        </div>
+        <div class="frag" style="display:flex; gap:64px; margin-top:32px; align-items:center;">
+            <p class="lede" style="flex:1; margin:0;">Most decisions don't need it. But wherever the door has stayed shut because humans were
+            <em>too expensive to convene</em> — an agent in the room changes the economics of being heard.</p>
+            <figure class="plate tilt-r" style="width:320px;">
+                <div class="art" style="background:#000; padding:12px;"><img src="assets/tweet-krier.jpg" alt="Séb Krier: the relevant counterfactual is often not direct personal participation, but my interests simply being ignored"></div>
+                <figcaption>The counterfactual is being ignored.</figcaption>
+            </figure>
+        </div>
+    </div>
+    <div class="folio">34 / 36</div>
+</section>
+
+<!-- ============================================================
+     35 · WHAT'S NEXT — CHANGE.ORG
+     ============================================================ -->
+<section class="slide" data-section="VI · Conclusion">
+    <div class="frame"></div>
+    <div class="masthead"><div>VI <span class="dot">·</span> Conclusion</div><div>Delegating Deliberation to AI Representatives</div></div>
+    <div class="rule"></div>
+    <div class="content">
+        <div class="split">
+            <div class="col-text">
+                <div class="kicker reveal d1">What's next</div>
+                <h2 class="headline reveal d1" style="font-size:66px;">We got acqui-hired by <em>Change.org</em></h2>
+                <ul class="ed-list" style="margin-top:38px;">
+                    <li class="frag">Making a <b>national dialogue on AI</b> a reality, working with folks from <b>Metagov</b> and the <b>Collective Intelligence Project</b>.</li>
+                    <li class="frag">Currently designing new <b>UX affordances for agentic elicitation</b>.</li>
+                </ul>
+            </div>
+            <div class="col-fig">
+                <figure class="plate tilt-r reveal d2" style="width:470px;">
+                    <div class="art"><img src="assets/swiss-dialogue-ux.png" alt="Swiss National AI Dialogue interface: drag to where you sit on 'One Swiss AI' versus 'Adapts to local communities'"></div>
+                    <div class="art" style="margin-top:14px;"><img src="assets/swiss-dialogue-suggest.png" alt="Swiss National AI Dialogue interface: someone else suggested a statement, with agree, disagree, and neutral buttons"></div>
+                    <figcaption>Drag to where you sit — eliciting positions, not just votes.</figcaption>
+                </figure>
+            </div>
+        </div>
+    </div>
+    <div class="folio">35 / 36</div>
+</section>
+
+<!-- ============================================================
+     36 · QUESTIONS / CLOSING
+     ============================================================ -->
+<section class="slide" data-section="Fin">
+    <div class="frame"></div>
+    <div class="masthead"><div>Thank you</div><div>Delegating Deliberation to AI Representatives</div></div>
+    <div class="rule"></div>
+    <div class="content">
+        <div class="split">
+            <div class="col-text">
+                <h2 class="headline reveal d1" style="font-size:104px;">Questions<em>!</em></h2>
+                <p class="lede reveal d2" style="margin-top:40px; font-size:33px;">Try the product. Give us feedback.<br>Go correct your lobster.</p>
+                <div class="reveal d3" style="margin-top:52px; font:600 34px/1 var(--font-body); color:var(--crimson);">linktr.ee/habermolt</div>
+                <div class="reveal d4" style="margin-top:26px; font:400 26px/1.5 var(--font-body); color:var(--muted);">Joseph Low · Oscar Duys</div>
+            </div>
+            <div class="col-fig" style="flex-direction:row; gap:48px; align-items:center;">
+                <figure class="plate tilt-l reveal d3" style="width:430px;">
+                    <div class="art"><img src="assets/mascot-thug.jpg" alt="Habermolt mascot wearing pixel sunglasses"></div>
+                    <figcaption>Habermolt lives on.</figcaption>
+                </figure>
+                <figure class="plate tilt-r reveal d4" style="width:300px;">
+                    <div class="art" style="padding:14px;"><img src="assets/qr-linktree.png" alt="QR code to linktr.ee/habermolt"></div>
+                    <figcaption>Scan me.</figcaption>
+                </figure>
+            </div>
+        </div>
+    </div>
+    <div class="folio">36 / 36</div>
+</section>
+
+</main>
+</div>
+
+<!-- slide counter (outside the stage) -->
+<div class="deck-controls" id="deckCounter" aria-hidden="true">1 / 33</div>
+
+<!-- inline editing affordance -->
+<div class="edit-hotzone" id="editHotzone"></div>
+<button class="edit-toggle" id="editToggle" title="Edit mode (E)">✏️</button>
+
+<script>
+/* ===========================================
+   SLIDE PRESENTATION CONTROLLER
+   Keyboard: ← → space PgUp PgDn Home End
+   Also: mouse wheel, touch swipe, URL hash (#5)
+   =========================================== */
+class SlidePresentation {
+    constructor() {
+        this.slides = Array.from(document.querySelectorAll('.slide'));
+        this.stage = document.getElementById('deckStage');
+        this.counter = document.getElementById('deckCounter');
+        this.current = 0;
+        this.wheelLock = 0;
+        this.setupStageScale();
+        this.setupKeyboardNav();
+        this.setupTouchNav();
+        this.setupWheelNav();
+        const fromHash = parseInt(location.hash.slice(1), 10);
+        this.show(isNaN(fromHash) ? 0 : fromHash - 1);
+    }
+
+    /* scale the fixed 1920x1080 stage to fit the window (letterboxing as needed) */
+    setupStageScale() {
+        const scale = () => {
+            const f = Math.min(innerWidth / 1920, innerHeight / 1080);
+            const x = (innerWidth - 1920 * f) / 2;
+            const y = (innerHeight - 1080 * f) / 2;
+            this.stage.style.transform = `translate(${x}px, ${y}px) scale(${f})`;
+        };
+        scale();
+        addEventListener('resize', scale);
+    }
+
+    setupKeyboardNav() {
+        addEventListener('keydown', (e) => {
+            if (e.target.getAttribute && e.target.getAttribute('contenteditable')) return;
+            switch (e.key) {
+                case 'ArrowRight': case 'ArrowDown': case ' ': case 'PageDown': this.next(); e.preventDefault(); break;
+                case 'ArrowLeft': case 'ArrowUp': case 'PageUp': this.prev(); e.preventDefault(); break;
+                case 'Home': this.show(0); e.preventDefault(); break;
+                case 'End': this.show(this.slides.length - 1); e.preventDefault(); break;
+            }
+        });
+    }
+
+    setupTouchNav() {
+        let x0 = null, y0 = null;
+        addEventListener('touchstart', (e) => { x0 = e.touches[0].clientX; y0 = e.touches[0].clientY; }, { passive: true });
+        addEventListener('touchend', (e) => {
+            if (x0 === null) return;
+            const dx = e.changedTouches[0].clientX - x0;
+            const dy = e.changedTouches[0].clientY - y0;
+            if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy)) (dx < 0 ? this.next() : this.prev());
+            x0 = y0 = null;
+        }, { passive: true });
+    }
+
+    setupWheelNav() {
+        addEventListener('wheel', (e) => {
+            const now = Date.now();
+            if (now - this.wheelLock < 700 || Math.abs(e.deltaY) < 24) return;
+            this.wheelLock = now;
+            e.deltaY > 0 ? this.next() : this.prev();
+        }, { passive: true });
+    }
+
+    /* advance: reveal the next fragment on this slide, else go to the next slide */
+    next() {
+        const frag = this.slides[this.current].querySelector('.frag:not(.frag-on)');
+        if (frag) { frag.classList.add('frag-on'); return; }
+        this.show(this.current + 1);
+    }
+
+    /* go back: hide the last revealed fragment, else go to the previous slide (fragments shown) */
+    prev() {
+        const on = this.slides[this.current].querySelectorAll('.frag.frag-on');
+        if (on.length) { on[on.length - 1].classList.remove('frag-on'); return; }
+        this.show(this.current - 1, true);
+    }
+
+    show(i, revealFrags = false) {
+        this.current = Math.max(0, Math.min(i, this.slides.length - 1));
+        this.slides.forEach((s, j) => {
+            s.classList.toggle('active', j === this.current);
+            s.classList.toggle('visible', j === this.current);
+        });
+        this.slides[this.current].querySelectorAll('.frag')
+            .forEach(f => f.classList.toggle('frag-on', revealFrags));
+        this.counter.textContent = `${this.current + 1} / ${this.slides.length}`;
+        history.replaceState(null, '', '#' + (this.current + 1));
+    }
+}
+const deck = new SlidePresentation();
+
+/* ===========================================
+   INLINE EDITOR
+   Hover top-left corner (or press E) to toggle.
+   Edits auto-save to localStorage; Ctrl/Cmd+S
+   downloads the edited HTML file.
+   =========================================== */
+const EDIT_SELECTOR = '.slide h1, .slide h2, .slide p, .slide li, .slide figcaption, .slide .kicker, .slide .verdict, .slide .divider-title, .slide .divider-sub, .slide .masthead div, .slide .folio';
+const STORE_KEY = 'habermolt-deck-edits-v2';
+
+class InlineEditor {
+    constructor() {
+        this.isActive = false;
+        this.els = Array.from(document.querySelectorAll(EDIT_SELECTOR));
+        this.restore();
+    }
+    toggleEditMode() {
+        this.isActive = !this.isActive;
+        document.body.classList.toggle('editing', this.isActive);
+        document.getElementById('editToggle').classList.toggle('active', this.isActive);
+        this.els.forEach(el => {
+            if (this.isActive) el.setAttribute('contenteditable', 'true');
+            else el.removeAttribute('contenteditable');
+        });
+        if (!this.isActive) this.save();
+    }
+    save() {
+        const edits = {};
+        this.els.forEach((el, i) => { edits[i] = el.innerHTML; });
+        try { localStorage.setItem(STORE_KEY, JSON.stringify({ n: this.els.length, edits })); } catch (e) {}
+    }
+    restore() {
+        try {
+            const saved = JSON.parse(localStorage.getItem(STORE_KEY) || 'null');
+            /* edits are keyed by element index — only restore if the deck
+               structure is unchanged since they were saved */
+            if (!saved || saved.n !== this.els.length || !saved.edits) return;
+            this.els.forEach((el, i) => { if (saved.edits[i] !== undefined) el.innerHTML = saved.edits[i]; });
+        } catch (e) {}
+    }
+    download() {
+        this.save();
+        const clone = document.documentElement.cloneNode(true);
+        clone.querySelectorAll('[contenteditable]').forEach(el => el.removeAttribute('contenteditable'));
+        const blob = new Blob(['<!DOCTYPE html>\n' + clone.outerHTML], { type: 'text/html' });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = 'habermolt-deck-edited.html';
+        a.click();
+        URL.revokeObjectURL(a.href);
+    }
+}
+const editor = new InlineEditor();
+
+/* edit toggle: click, hotzone hover w/ 400ms grace, E key, Ctrl+S export */
+const hotzone = document.getElementById('editHotzone');
+const editToggle = document.getElementById('editToggle');
+let hideTimeout = null;
+editToggle.addEventListener('click', () => editor.toggleEditMode());
+hotzone.addEventListener('click', () => editor.toggleEditMode());
+hotzone.addEventListener('mouseenter', () => { clearTimeout(hideTimeout); editToggle.classList.add('show'); });
+hotzone.addEventListener('mouseleave', () => { hideTimeout = setTimeout(() => { if (!editor.isActive) editToggle.classList.remove('show'); }, 400); });
+editToggle.addEventListener('mouseenter', () => clearTimeout(hideTimeout));
+editToggle.addEventListener('mouseleave', () => { hideTimeout = setTimeout(() => { if (!editor.isActive) editToggle.classList.remove('show'); }, 400); });
+addEventListener('keydown', (e) => {
+    if ((e.key === 'e' || e.key === 'E') && !(e.target.getAttribute && e.target.getAttribute('contenteditable'))) editor.toggleEditMode();
+    if ((e.metaKey || e.ctrlKey) && e.key === 's') { e.preventDefault(); editor.download(); }
+});
+/* persist edits while typing (debounced) */
+let saveTimer = null;
+addEventListener('input', () => {
+    if (!editor.isActive) return;
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(() => editor.save(), 500);
+});
+</script>
+</body>
+</html>
