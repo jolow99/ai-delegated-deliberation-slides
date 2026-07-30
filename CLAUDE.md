@@ -6,15 +6,18 @@ skill; no build step, no dependencies.
 
 ## Files
 
-- `index.html` — the entire deck: 33 slides, all CSS/JS inline. This is the **current/live working deck**
+- `index.html` — the entire deck: 36 slides, all CSS/JS inline. This is the **current/live working deck**
   (retargeted per talk — venue/date edited in place). This is the only deck file you edit.
 - `assets/` — images, already resized/compressed for the web. Referenced by relative path.
 - `presentations/<date>-<slug>/` — **frozen history of past talks**, each fully self-contained
-  (its own `index.html` + its own `assets/` copy, so root edits can't break it). Never hand-edit these.
-  When a talk is finished, freeze it: `git show <tag-or-ref>:index.html > presentations/<date>-<slug>/index.html`
-  then `cp -R assets presentations/<date>-<slug>/assets`. See `presentations/README.md` for the index.
+  (its own `index.html`, its own `assets/` copy and its own `deck.pdf`, so root edits can't break it).
+  Never hand-edit these. When a talk is finished, freeze it:
+  `git show <tag-or-ref>:index.html > presentations/<date>-<slug>/index.html`,
+  `cp -R assets presentations/<date>-<slug>/assets`, then export `deck.pdf` into the same folder
+  (see below). Update `presentations/README.md`, which indexes them.
   Each is also live at `…/presentations/<date>-<slug>/`.
-- `habermolt-deck.pdf` — static export (untracked); regenerate after edits, don't hand-edit.
+- `scripts/export-deck-pdf.mjs` — PDF exporter, see Deployment below.
+- `habermolt-deck.pdf` — static export of the root deck (untracked); regenerate after edits, don't hand-edit.
 - `.frontend-slides/` (gitignored) — extraction scratch from the original pptx. The full-resolution
   originals live in `5th July 26' @Supercooperation.pptx` (also gitignored via `*.pptx`) and can be
   re-extracted with the frontend-slides skill's `extract-pptx.py` if a new asset is needed.
@@ -29,11 +32,24 @@ Pushing to `main` auto-deploys via GitHub Pages (legacy branch build, `main` roo
 So: edit → verify locally → commit → push. Builds take ~1 min. If the site 404s for several
 minutes, kick a rebuild: `gh api repos/jolow99/ai-delegated-deliberation-slides/pages/builds -X POST`.
 
-PDF export (uses the frontend-slides skill script, needs Playwright):
+PDF export — use `scripts/export-deck-pdf.mjs`, **not** the frontend-slides skill script.
+The skill script only force-shows `.reveal` elements, so every `.frag[data-fstep]` step-through
+build (e.g. the slide-31 table) exports blank, and it bakes the on-screen nav counter into the
+page. Ours drives the deck's own `deck.show(i, true)` and hides the live chrome.
+
+Needs Playwright + Chromium. The repo stays dependency-free, so install them out of tree once
+and point `PLAYWRIGHT_DIR` at that directory (omit it if `playwright` is installed in the repo):
 
 ```sh
-bash ~/.claude/skills/frontend-slides/scripts/export-pdf.sh index.html habermolt-deck.pdf
+mkdir -p /tmp/pw && (cd /tmp/pw && npm init -y && npm i playwright && npx playwright install chromium)
+
+export PLAYWRIGHT_DIR=/tmp/pw
+node scripts/export-deck-pdf.mjs . index.html habermolt-deck.pdf                    # root deck
+node scripts/export-deck-pdf.mjs presentations/<folder> index.html \
+     presentations/<folder>/deck.pdf                                                # an archive
 ```
+
+It aborts on any broken image, so a failed export is a real signal. Expect ~12MB for 36 slides.
 
 ## Deck architecture — the rules that must not break
 
