@@ -1,4 +1,7 @@
 *.pptx
+*.docx
 .DS_Store
 .frontend-slides/
-habermolt-deck.pdf
+
+# regenerable root-deck exports — anchored, so presentations/*/deck.pdf stays tracked
+/habermolt-deck*.pdf

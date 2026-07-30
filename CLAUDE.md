@@ -17,12 +17,22 @@ skill; no build step, no dependencies.
   (see below). Update `presentations/README.md`, which indexes them.
   Each is also live at `…/presentations/<date>-<slug>/`.
 - `scripts/export-deck-pdf.mjs` — PDF exporter, see Deployment below.
-- `habermolt-deck.pdf` — static export of the root deck (untracked); regenerate after edits, don't hand-edit.
-- `.frontend-slides/` (gitignored) — extraction scratch from the original pptx. The full-resolution
-  originals live in `5th July 26' @Supercooperation.pptx` (also gitignored via `*.pptx`) and can be
-  re-extracted with the frontend-slides skill's `extract-pptx.py` if a new asset is needed.
+- `habermolt-deck.pdf` — static export of the root deck (untracked, gitignored, not kept in the
+  working tree); regenerate on demand, don't hand-edit.
+- `.frontend-slides/` (gitignored) — extraction scratch from the original pptx, and now the only
+  copy of the full-resolution originals in the repo: `.frontend-slides/extracted/assets/` (69 images)
+  plus `blogpost.txt`. Check here first when a new asset is needed.
+
+**Source material no longer in the working tree** (removed 30 July 2026 to keep the repo clean):
+
 - `CAIF Habermolt Blogpost.docx` — source prose for most slide copy (hook, paradigm framing,
-  representation/aggregation/revision findings). Quote it before inventing new wording.
+  representation/aggregation/revision findings). Quote it before inventing new wording. It stays
+  recoverable from git history:
+  `git show 0c63b93:"CAIF Habermolt Blogpost.docx" > "CAIF Habermolt Blogpost.docx"`
+- `5th July 26' @Supercooperation.pptx` — the original PowerPoint. **Never committed**, so git can't
+  bring it back; it was moved to the macOS Trash. If it's gone and you need an original at full
+  resolution, `.frontend-slides/extracted/assets/` above is the fallback, otherwise ask Joseph for
+  the file and re-extract with the frontend-slides skill's `extract-pptx.py`.
 
 ## Deployment
 
