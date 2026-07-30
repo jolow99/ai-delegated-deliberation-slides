@@ -19,20 +19,23 @@ skill; no build step, no dependencies.
 - `scripts/export-deck-pdf.mjs` — PDF exporter, see Deployment below.
 - `habermolt-deck.pdf` — static export of the root deck (untracked, gitignored, not kept in the
   working tree); regenerate on demand, don't hand-edit.
-- `.frontend-slides/` (gitignored) — extraction scratch from the original pptx, and now the only
-  copy of the full-resolution originals in the repo: `.frontend-slides/extracted/assets/` (69 images)
-  plus `blogpost.txt`. Check here first when a new asset is needed.
-
-**Source material no longer in the working tree** (removed 30 July 2026 to keep the repo clean):
+**Source material no longer in the working tree** (removed 30 July 2026 to keep the repo clean).
+`assets/` is now self-sufficient — the deck references nothing outside it — but note that those
+files are web-compressed (~900px), so **no full-resolution imagery survives in the repo**. Don't
+promise a print-quality or re-cropped version of a photo without first recovering an original.
 
 - `CAIF Habermolt Blogpost.docx` — source prose for most slide copy (hook, paradigm framing,
   representation/aggregation/revision findings). Quote it before inventing new wording. It stays
   recoverable from git history:
   `git show 0c63b93:"CAIF Habermolt Blogpost.docx" > "CAIF Habermolt Blogpost.docx"`
-- `5th July 26' @Supercooperation.pptx` — the original PowerPoint. **Never committed**, so git can't
-  bring it back; it was moved to the macOS Trash. If it's gone and you need an original at full
-  resolution, `.frontend-slides/extracted/assets/` above is the fallback, otherwise ask Joseph for
-  the file and re-extract with the frontend-slides skill's `extract-pptx.py`.
+- `5th July 26' @Supercooperation.pptx` — the original PowerPoint, and the ancestor of every image
+  in `assets/`. **Never committed**, so git cannot bring it back; moved to the macOS Trash.
+- `.frontend-slides/` — extraction scratch the frontend-slides skill produced from that pptx
+  (69 full-resolution images, `extracted-slides.json`, and `blogpost.txt`). Also never committed,
+  also moved to the macOS Trash.
+
+If you need an original and both are past the Trash, ask Joseph for the pptx and re-extract with
+the frontend-slides skill's `extract-pptx.py`.
 
 ## Deployment
 
