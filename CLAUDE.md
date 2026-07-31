@@ -6,7 +6,7 @@ skill; no build step, no dependencies.
 
 ## Files
 
-- `index.html` — the entire deck: 36 slides, all CSS/JS inline. This is the **current/live working deck**
+- `index.html` — the entire deck: 25 slides, all CSS/JS inline. This is the **current/live working deck**
   (retargeted per talk — venue/date edited in place). This is the only deck file you edit.
 - `assets/` — images, already resized/compressed for the web. Referenced by relative path.
 - `presentations/<date>-<slug>/` — **frozen history of past talks**, each fully self-contained
@@ -62,7 +62,7 @@ node scripts/export-deck-pdf.mjs presentations/<folder> index.html \
      presentations/<folder>/deck.pdf                                                # an archive
 ```
 
-It aborts on any broken image, so a failed export is a real signal. Expect ~12MB for 36 slides.
+It aborts on any broken image, so a failed export is a real signal. Expect ~9MB for 25 slides.
 
 ## Deck architecture — the rules that must not break
 
@@ -74,8 +74,8 @@ It aborts on any broken image, so a failed export is a real signal. Expect ~12MB
   `.content` (top 196 / sides 150 / bottom 150 → ~734px of height). If content doesn't fit,
   split into two slides; don't shrink text below ~24px.
 - Each slide carries its own chrome: `.frame`, `.masthead` (section label left, HABERMOLT right),
-  `.rule`, `.folio` ("n / 33"). **Folios are hardcoded** — adding/removing a slide means renumbering
-  every folio after it and the total on all slides (search `"/ 33"`).
+  `.rule`, `.folio` ("n / 25"). **Folios are hardcoded** — adding/removing a slide means renumbering
+  every folio after it and the total on all slides (search `"/ 25"`).
 - Entrance animation: give elements `class="reveal d1"`…`d6` (stagger delays). Plates keep their
   tilt via `.reveal.tilt-l` / `.tilt-r` overrides — if you add a new rotated class, add the matching
   `.slide.visible .reveal.<class>` rule or the tilt vanishes after reveal.
@@ -96,8 +96,7 @@ Reusable pieces (match these before inventing new ones):
 - Layouts: `.split` (text + figure columns), `.statement` (single centred thought),
   divider slides (`.divider-num`, `.divider-title`, `.divider-sub`)
 
-Speaker notes live as HTML comments above their slide (e.g. the Lewis "cherry-picked" rebuttal
-context above slide 26).
+Speaker notes live as HTML comments above their slide.
 
 ## Images
 
@@ -109,10 +108,11 @@ context above slide 26).
 - Never let a stacked column of plates exceed the content box: compute
   `height = (imgHeight/imgWidth) × plateWidth + ~26px padding + ~40px caption` per plate.
 
-## Verify before pushing (required)
+## Verifying visually (only when asked, or when layout is genuinely at risk)
 
-Screenshot every slide headlessly and eyeball for overflow/overlap/broken images — `scrollHeight`
-checks are not enough. Playwright pattern that works here:
+Don't screenshot the deck by default — it's slow and token-hungry. Reach for it only when a change
+plausibly breaks layout (new/resized imagery, dense content near the content-box limit) or when
+Joseph asks. Playwright pattern that works here:
 
 ```js
 await page.goto('file://…/index.html', {waitUntil: 'networkidle'});
