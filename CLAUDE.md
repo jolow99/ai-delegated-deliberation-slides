@@ -6,7 +6,7 @@ skill; no build step, no dependencies.
 
 ## Files
 
-- `index.html` — the entire deck: 25 slides, all CSS/JS inline. This is the **current/live working deck**
+- `index.html` — the entire deck: 30 slides, all CSS/JS inline. This is the **current/live working deck**
   (retargeted per talk — venue/date edited in place). This is the only deck file you edit.
 - `assets/` — images, already resized/compressed for the web. Referenced by relative path.
 - `presentations/<date>-<slug>/` — **frozen history of past talks**, each fully self-contained
@@ -62,7 +62,7 @@ node scripts/export-deck-pdf.mjs presentations/<folder> index.html \
      presentations/<folder>/deck.pdf                                                # an archive
 ```
 
-It aborts on any broken image, so a failed export is a real signal. Expect ~9MB for 25 slides.
+It aborts on any broken image, so a failed export is a real signal. Expect ~10MB for 30 slides.
 
 ## Deck architecture — the rules that must not break
 
@@ -74,8 +74,9 @@ It aborts on any broken image, so a failed export is a real signal. Expect ~9MB 
   `.content` (top 196 / sides 150 / bottom 150 → ~734px of height). If content doesn't fit,
   split into two slides; don't shrink text below ~24px.
 - Each slide carries its own chrome: `.frame`, `.masthead` (section label left, HABERMOLT right),
-  `.rule`, `.folio` ("n / 25"). **Folios are hardcoded** — adding/removing a slide means renumbering
-  every folio after it and the total on all slides (search `"/ 25"`).
+  `.rule`, `.folio` ("n / 30"). **Folios are hardcoded** — adding/removing a slide means renumbering
+  every folio after it and the total on all slides (search `"/ 30"`), plus the `#deckCounter` div
+  near the bottom of the file.
 - Entrance animation: give elements `class="reveal d1"`…`d6` (stagger delays). Plates keep their
   tilt via `.reveal.tilt-l` / `.tilt-r` overrides — if you add a new rotated class, add the matching
   `.slide.visible .reveal.<class>` rule or the tilt vanishes after reveal.
