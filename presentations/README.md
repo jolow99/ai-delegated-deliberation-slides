@@ -14,6 +14,7 @@ fragments revealed) for sharing over email/Slack.
 |------|-------|--------|-----|
 | 2026-07-05 | Supercooperation | [`2026-07-05-supercooperation/`](2026-07-05-supercooperation/) | [`deck.pdf`](2026-07-05-supercooperation/deck.pdf) |
 | 2026-07-15 | Lorong AI | [`2026-07-15-lorong-ai/`](2026-07-15-lorong-ai/) | [`deck.pdf`](2026-07-15-lorong-ai/deck.pdf) |
+| 2026-07-31 | Stanford AO Summit | [`2026-07-31-stanford-ao-summit/`](2026-07-31-stanford-ao-summit/) | [`deck.pdf`](2026-07-31-stanford-ao-summit/deck.pdf) |
 
 > The **root `index.html`** is always the current/latest working deck (not listed here).
 > When a talk is finished, copy it into a new `presentations/<date>-<slug>/` folder
